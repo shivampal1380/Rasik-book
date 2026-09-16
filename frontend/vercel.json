@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://rasid-book-api.vercel.app/api/$1"
+      "destination": "https://rasik-book-backend.vercel.app/api/$1"
     },
     {
       "source": "/(.*)",

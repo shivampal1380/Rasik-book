@@ -62,8 +62,6 @@ npm run seed                   # admin + operator + 2 demo books
 npm run dev                    # http://localhost:4000
 ```
 
-
-
 ## 3. Frontend
 
 ```powershell
