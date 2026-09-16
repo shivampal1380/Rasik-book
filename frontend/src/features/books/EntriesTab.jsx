@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchEntries } from './booksApi.js';
+import { HEADS, headLabel, entryHeadLabel, formatINR, getErrorMessage } from '../../lib/api.js';
+import { useVisibleHeads } from '../config/useVisibleHeads.js';
+import { PageLoader } from '../../components/ui/Spinner.jsx';
+import { ErrorAlert } from '../../components/ui/Feedback.jsx';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useUser } from '../auth/UserContext.js';
+import EditEntryModal from './EditEntryModal.jsx';
+
+export default function EntriesTab({ bookId }) {
+  const { isAdmin } = useUser();
+  const [page, setPage] = useState(1);
+  const [head, setHead] = useState('');
+  const [editing, setEditing] = useState(null);
+  const { visibleKeySet } = useVisibleHeads();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['book-entries', bookId, { page, head }],
+    queryFn: () => fetchEntries(bookId, { page, pageSize: 20, head: head || undefined, sort: 'entryNumber', order: 'desc' }),
+  });
+
+  if (isLoading) return <PageLoader />;
+  if (error) return <ErrorAlert message={getErrorMessage(error)} />;
+  if (!data) return null;
+
+  const { items, pagination, totals } = data;
+  const from = (pagination.page - 1) * pagination.pageSize + 1;
+  const to = Math.min(pagination.page * pagination.pageSize, pagination.total);
+
+  const headTotals = totals.byHead.find(h => h.head === head);
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setHead('')}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${!head ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+          >
+            All
+          </button>
+          {HEADS.filter(h => visibleKeySet.has(h.key)).map(h => (
+            <button
+              key={h.key}
+              onClick={() => {
+                setHead(h.key);
+                setPage(1);
+              }}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${head === h.key ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+            >
+              {headLabel(h.key)}
+            </button>
+          ))}
+        </div>
+        <div className="text-sm text-slate-500">
+          Entries {from}–{to} of {pagination.total} · Total <span className="font-bold text-slate-800">{formatINR(headTotals?.total ?? totals.grandTotal)}</span>
+        </div>
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3 text-left">No.</th>
+                <th className="px-4 py-3 text-left">Head</th>
+                <th className="px-4 py-3 text-right">Amount</th>
+                <th className="px-4 py-3 text-right">Running total</th>
+                <th className="px-4 py-3 text-right">Recorded</th>
+                {isAdmin && <th className="px-4 py-3 text-right">Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                    No entries found.
+                  </td>
+                </tr>
+              )}
+              {items.map(e => (
+                <tr key={e.id} className="border-t border-slate-100 hover:bg-slate-50/50">
+                  <td className="px-4 py-2.5 font-semibold text-slate-700">{e.entryNumber}</td>
+                  <td className="px-4 py-2.5 text-slate-600">{entryHeadLabel(e)}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-800">{formatINR(e.amount)}</td>
+                  <td className="px-4 py-2.5 text-right text-slate-500">{formatINR(data.runningTotals?.[e.entryNumber] ?? '—')}</td>
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-400">
+                    {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                  </td>
+                  {isAdmin && (
+                    <td className="px-4 py-2.5 text-right">
+                      <button onClick={() => setEditing(e)} className="text-xs font-semibold text-brand-700 hover:text-brand-900">
+                        Edit
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+          <span className="text-xs text-slate-400">Page {pagination.page} of {Math.max(pagination.pages, 1)}</span>
+          <div className="flex gap-2">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="btn-secondary px-2 py-1.5">
+              <ChevronLeft size={16} />
+            </button>
+            <button onClick={() => setPage(p => p + 1)} disabled={page >= pagination.pages} className="btn-secondary px-2 py-1.5">
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <EditEntryModal bookId={bookId} entry={editing} onClose={() => setEditing(null)} />
+    </div>
+  );
+}

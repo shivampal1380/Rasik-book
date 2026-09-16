@@ -1,0 +1,143 @@
+// Prisma schema for the Book Amount Entry system.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Head {
+    ASS
+    MSS
+    BHETA
+    B_FUND
+    SBF
+    LANGAR
+    PCS
+    FF
+    MED
+    SS
+    SD
+    MPD
+    LSS
+  }
+
+enum BookStatus {
+  OPEN
+  COMPLETED
+  CLOSED
+  CANCELLED
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(OPERATOR)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  booksCreated  Book[]      @relation("BookCreatedBy")
+  entriesEnterd BookEntry[] @relation("EntryCreatedBy")
+
+  @@map("users")
+}
+
+model Book {
+  id                 String     @id @default(uuid())
+  code               String
+  bookNumber         String
+  status             BookStatus @default(OPEN)
+  currentEntryNumber Int        @default(1)
+  maxEntries         Int        @default(100)
+  pracharak          String?
+  area               String?
+  createdBy          String
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  completedAt        DateTime?
+
+  createdByUser User      @relation("BookCreatedBy", fields: [createdBy], references: [id])
+  entries       BookEntry[]
+
+  @@unique([code, bookNumber])
+  @@index([status])
+  @@index([createdBy])
+
+  @@map("books")
+}
+
+model BookEntry {
+  id          String    @id @default(uuid())
+  bookId      String
+  entryNumber Int
+  head        Head
+  amount      Int       // whole rupees only
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  createdByUser User   @relation("EntryCreatedBy", fields: [createdBy], references: [id])
+
+  @@unique([bookId, entryNumber])
+  @@index([bookId, head])
+  @@index([bookId, createdAt])
+  @@index([createdBy])
+
+  @@map("book_entries")
+}
+
+model HeadVisibility {
+  head      Head     @id
+  visible   Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+
+  @@map("head_visibility")
+}
+
+// Statement (PDF) layout configuration.
+//   mainHeads[0..4] → columns 1-5 (amounts print in their own column).
+//   mainHeads[5]    → column 6; mainHeads[6] → column 7.
+//   When subHeadMode is ON, column 6 lists every other visible head as a
+//   sub-head (name in the cell) under mainHeads[5] as title, and column 7
+//   holds the sub-heads' Amount. When OFF, columns 6 and 7 just print as
+//   two more normal main head columns.
+model PdfConfig {
+  id          String  @id @default(uuid())
+  mainHeads   Head[]
+  subHeadMode Boolean @default(true)
+  updatedAt   DateTime @updatedAt
+
+  @@map("pdf_config")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+
+  @@map("audit_logs")
+}
