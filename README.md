@@ -62,12 +62,7 @@ npm run seed                   # admin + operator + 2 demo books
 npm run dev                    # http://localhost:4000
 ```
 
-Seed users:
 
-| Role      | Email                     | Password    |
-| --------- | ------------------------- | ----------- |
-| Admin     | `admin@nirankari.local`   | `admin12345`|
-| Operator  | `operator@nirankari.local`| `operator123`|
 
 ## 3. Frontend
 
