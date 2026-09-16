@@ -1,9 +1,0 @@
-Act as expert production enterprise level software enginner and develope me web application for book amount entry.
-
-context:
-Create a application using react, express js and progressql this application has book amount entries where there will be multiple book open at the same time with book unique number and every book has 100 page entries in it user will select the head (ASS, MSS, Bheta, Langar, PCS) and enter the amount for that head dont there will be dropdown for the heads and feild for entering the amount. all the enteies that are done for the book should be show in the tabular format in another tab. after all the entries is done the pdf should be generated the layout of the pdf should be provide by this excel file "Sant_Nirankari_Statement_of_Receipts.xlsx"
-
-Task: 
-- There will be a create new book button where user will create new book with this parameters code and book no
-- every time user will do the entries for the book will have to select heads and enter the amount and sumbit after sumbit it will ask for another entry to put beause every book will have 1 to 100  entires
-- 

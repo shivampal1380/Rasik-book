@@ -10,6 +10,10 @@ backend/tmp/
 backend/.vercel/
 frontend/.vercel/
 
+# Local reference documents (do not share donor statement data)
+*.xlsx
+requirement.txt
+
 # Environment (never commit secrets)
 .env
 *.env.local
