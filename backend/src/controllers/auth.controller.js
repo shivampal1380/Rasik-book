@@ -26,3 +26,17 @@ export const me = asyncHandler(async (req, res) => {
   const user = await authService.getUserById(req.user.sub);
   return ok(res, { user });
 });
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const user = await authService.changePassword({ userId: req.user.sub, currentPassword, newPassword });
+  await writeAudit({
+    userId: user.id,
+    action: 'PASSWORD_CHANGED',
+    entity: 'User',
+    entityId: user.id,
+    newValue: { email: user.email },
+    req,
+  });
+  return ok(res, { success: true });
+});

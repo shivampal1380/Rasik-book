@@ -11,6 +11,7 @@ import UsersPage from './features/users/UsersPage.jsx';
 import HeadConfigPage from './features/config/HeadConfigPage.jsx';
 import SearchPage from './features/search/SearchPage.jsx';
 import ComparePage from './features/compare/ComparePage.jsx';
+import SettingsPage from './features/settings/SettingsPage.jsx';
 import { Spinner } from './components/ui/Spinner.jsx';
 
 function RequireAuth({ children }) {
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/config" element={<HeadConfigPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/compare" element={<ComparePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

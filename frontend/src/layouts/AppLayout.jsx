@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Scale } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Scale, KeyRound } from 'lucide-react';
 import { useUser } from '../features/auth/UserContext.js';
 import { logout } from '../features/auth/authApi.js';
 import { queryClient } from '../lib/queryClient.js';
@@ -39,6 +39,9 @@ export default function AppLayout() {
       </NavLink>
       <NavLink to="/compare" className={linkCls} onClick={closeSidebar}>
         <Scale size={18} /> Compare
+      </NavLink>
+      <NavLink to="/settings" className={linkCls} onClick={closeSidebar}>
+        <KeyRound size={18} /> Settings
       </NavLink>
       {isAdmin && (
         <NavLink to="/users" className={linkCls} onClick={closeSidebar}>

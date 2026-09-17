@@ -69,13 +69,14 @@ export default function EntriesTab({ bookId }) {
                 <th className="px-4 py-3 text-right">Amount</th>
                 <th className="px-4 py-3 text-right">Running total</th>
                 <th className="px-4 py-3 text-right">Recorded</th>
+                <th className="px-4 py-3 text-left">Status</th>
                 {isAdmin && <th className="px-4 py-3 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
                     No entries found.
                   </td>
                 </tr>
@@ -88,6 +89,20 @@ export default function EntriesTab({ bookId }) {
                   <td className="px-4 py-2.5 text-right text-slate-500">{formatINR(data.runningTotals?.[e.entryNumber] ?? '—')}</td>
                   <td className="px-4 py-2.5 text-right text-xs text-slate-400">
                     {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    {e.isCorrected ? (
+                      <div className="text-xs">
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                          Corrected
+                        </span>
+                        <div className="mt-1 text-[11px] text-slate-400">
+                          {new Date(e.correctedAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-300">—</span>
+                    )}
                   </td>
                   {isAdmin && (
                     <td className="px-4 py-2.5 text-right">

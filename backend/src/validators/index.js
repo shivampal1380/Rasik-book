@@ -7,6 +7,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters').max(100),
+});
+
 // --- Books ---
 export const createBookSchema = z.object({
   code: z
@@ -169,7 +174,11 @@ export function validate(schema, source = 'body') {
       error.issues = result.error.issues;
       return next(error);
     }
-    req[source] = result.data;
+    // Only attach parsed/coerced values for body and query. Never replace
+    // req.params: a route may validate the params multiple times (e.g. both a
+    // book and an entry id) and zod strips unknown keys, which would drop the
+    // other param and break subsequent validators/controllers.
+    if (source !== 'params') req[source] = result.data;
     next();
   };
 }

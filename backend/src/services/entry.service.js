@@ -126,6 +126,8 @@ export async function listEntries({ bookId, query }) {
         createdBy: true,
         createdAt: true,
         updatedAt: true,
+        isCorrected: true,
+        correctedAt: true,
         createdByUser: { select: { id: true, name: true, email: true } },
       },
     }),
@@ -178,8 +180,8 @@ async function buildRunningTotals(bookId) {
 }
 
 // ---------------------------------------------------------------------------
-// Correct (update) an entry. Records the previous values in the audit log.
-// Authorized users only (ADMIN) — enforced at the route layer.
+// Correct (update) an entry. Marks the entry as corrected with the timestamp,
+// and records the previous values in the audit log. Admin only.
 // ---------------------------------------------------------------------------
 export async function updateEntry({ bookId, entryId, head, amount, userId, req }) {
   return prisma.$transaction(async tx => {
@@ -191,12 +193,14 @@ export async function updateEntry({ bookId, entryId, head, amount, userId, req }
     const oldValue = { head: entry.head, amount: entry.amount };
     const updated = await tx.bookEntry.update({
       where: { id: entryId },
-      data: { head, amount },
+      data: { head, amount, isCorrected: true, correctedAt: new Date() },
       select: {
         id: true,
         entryNumber: true,
         head: true,
         amount: true,
+        isCorrected: true,
+        correctedAt: true,
         createdAt: true,
         updatedAt: true,
       },

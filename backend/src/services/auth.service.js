@@ -34,3 +34,15 @@ function toSafeUser(user) {
 }
 
 export const safeUser = toSafeUser;
+
+export async function changePassword({ userId, currentPassword, newPassword }) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new UnauthorizedError('User not found');
+
+  const match = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!match) throw new UnauthorizedError('Current password is incorrect', 'INVALID_CURRENT_PASSWORD');
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  return toSafeUser(user);
+}
