@@ -22,9 +22,9 @@ async function main() {
     name: env('SEED_ADMIN_NAME', 'Administrator'),
     email: adminEmail,
     password: adminPassword,
-    role: 'ADMIN',
+    role: 'SUPER_ADMIN',
   });
-  console.log(`✔ Admin user ready: ${admin.email} (role ${admin.role})`);
+  console.log(`✔ Super Admin user ready: ${admin.email} (role ${admin.role})`);
 
   const operator = await upsertUser({
     name: 'Data Entry Operator',

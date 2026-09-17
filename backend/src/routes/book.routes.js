@@ -21,7 +21,7 @@ import {
   updateEntrySchema,
 } from '../validators/index.js';
 
-const ALLOWED = ['ADMIN', 'OPERATOR'];
+const ALLOWED = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
 
 const router = Router();
 router.use(authenticate);
@@ -46,7 +46,7 @@ router.patch(
   updateEntry,
 );
 router.post('/:id/complete', validate(bookParamSchema, 'params'), requireAdmin, completeBook);
-router.post('/:id/close', validate(bookParamSchema, 'params'), requireAdmin, closeBook);
+router.post('/:id/close', validate(bookParamSchema, 'params'), requireRole('SUPER_ADMIN'), closeBook);
 router.get('/:id/audit', validate(bookParamSchema, 'params'), requireAdmin, getBookAudit);
 router.get('/:id/pdf', validate(bookParamSchema, 'params'), generatePdf);
 

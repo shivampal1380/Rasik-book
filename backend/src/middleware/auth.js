@@ -68,8 +68,8 @@ export function requireRole(...roles) {
   };
 }
 
-// Require the ADMIN role.
-export const requireAdmin = requireRole('ADMIN');
+// Require an admin-level role (SUPER_ADMIN or ADMIN).
+export const requireAdmin = requireRole('SUPER_ADMIN', 'ADMIN');
 
 // Authentication optional — does not reject unauthenticated requests.
 export function optionalAuth(req, _res, next) {

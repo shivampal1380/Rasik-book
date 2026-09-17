@@ -3,7 +3,7 @@ import { searchEntries, compareBooks } from '../controllers/search.controller.js
 import { authenticate, requireRole } from '../middleware/auth.js';
 import { validate, searchEntriesQuerySchema, compareBooksQuerySchema } from '../validators/index.js';
 
-const ALLOWED = ['ADMIN', 'OPERATOR'];
+const ALLOWED = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
 
 const router = Router();
 router.use(authenticate);

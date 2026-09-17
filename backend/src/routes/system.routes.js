@@ -17,7 +17,7 @@ import {
   updatePdfConfigSchema,
 } from '../validators/index.js';
 
-const ALLOWED = ['ADMIN', 'OPERATOR'];
+const ALLOWED = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
 
 const router = Router();
 router.use(authenticate);

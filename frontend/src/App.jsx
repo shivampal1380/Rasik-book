@@ -27,13 +27,19 @@ function RequireAuth({ children }) {
   if (error || !data?.user) {
     return <Navigate to="/login" replace />;
   }
-  if (pathname === '/users' && data.user.role !== 'ADMIN') {
+  const isAdmin = data.user.role === 'ADMIN' || data.user.role === 'SUPER_ADMIN';
+  const isSuperAdmin = data.user.role === 'SUPER_ADMIN';
+  if (pathname === '/users' && !isAdmin) {
     return <Navigate to="/" replace />;
   }
-  if (pathname === '/config' && data.user.role !== 'ADMIN') {
+  if (pathname === '/config' && !isAdmin) {
     return <Navigate to="/" replace />;
   }
-  return <UserContext.Provider value={{ user: data.user, isAdmin: data.user.role === 'ADMIN' }}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={{ user: data.user, isAdmin, isSuperAdmin }}>
+      {children}
+    </UserContext.Provider>
+  );
 }
 
 export default function App() {

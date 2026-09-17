@@ -9,12 +9,13 @@ import { PageLoader, Spinner } from '../../components/ui/Spinner.jsx';
 import { getErrorMessage } from '../../lib/api.js';
 
 const ROLE_BADGE = {
+  SUPER_ADMIN: 'bg-purple-100 text-purple-800',
   ADMIN: 'bg-brand-100 text-brand-800',
   OPERATOR: 'bg-sky-100 text-sky-800',
 };
 
 export default function UsersPage() {
-  const { user: me } = useUser();
+  const { user: me, isAdmin, isSuperAdmin } = useUser();
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [notice, setNotice] = useState('');
@@ -87,7 +88,7 @@ export default function UsersPage() {
                   </span>
                 </td>
                 <td className="px-5 py-3 text-right">
-                  {u.id !== me?.id && (
+                  {u.id !== me?.id && u.role !== 'SUPER_ADMIN' && (isSuperAdmin || u.role === 'OPERATOR') && (
                     <button
                       onClick={() => toggleActive.mutate({ id: u.id, isActive: !u.isActive })}
                       disabled={toggleActive.isPending}
@@ -104,12 +105,18 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} onCreated={() => setShowCreate(false)} />}
+      {showCreate && (
+        <CreateUserModal
+          isSuperAdmin={isSuperAdmin}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => setShowCreate(false)}
+        />
+      )}
     </div>
   );
 }
 
-function CreateUserModal({ onClose }) {
+function CreateUserModal({ isSuperAdmin = false, onClose }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'OPERATOR' });
   const [err, setErr] = useState('');
@@ -150,10 +157,14 @@ function CreateUserModal({ onClose }) {
         </div>
         <div>
           <label className="label">Role</label>
-          <select className="input" value={form.role} onChange={update('role')}>
-            <option value="OPERATOR">Operator — enters amounts</option>
-            <option value="ADMIN">Admin — full access incl. corrections</option>
-          </select>
+          {isSuperAdmin ? (
+            <select className="input" value={form.role} onChange={update('role')}>
+              <option value="OPERATOR">Operator — enters amounts</option>
+              <option value="ADMIN">Admin — full access incl. corrections</option>
+            </select>
+          ) : (
+            <div className="input cursor-not-allowed bg-slate-50 text-slate-500">Operator — enters amounts</div>
+          )}
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>

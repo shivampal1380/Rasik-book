@@ -10,7 +10,7 @@ head-wise summaries, an audit trail, and statement PDF generation.
 | -------- | ---------- |
 | Frontend | React 18, Vite, Tailwind CSS, TanStack Query, React Router, React Hook Form + Zod |
 | Backend  | Node.js, Express, Prisma ORM, PostgreSQL |
-| Auth     | JWT in httpOnly cookie, bcrypt, role-based access (ADMIN / OPERATOR) |
+| Auth     | JWT in httpOnly cookie, bcrypt, role-based access (SUPER_ADMIN / ADMIN / OPERATOR) |
 | PDF      | Playwright (headless Chromium) rendering an A4 landscape statement |
 | Quality  | Zod validation, structured logging (pino), rate limiting, unified error handling |
 
@@ -176,10 +176,10 @@ fallback rewrite keeps React Router client-side routes like `/books` working.
 | GET    | `/api/books/:id/entries`          | any user      |
 | PATCH  | `/api/books/:id/entries/:entryId` | ADMIN only    |
 | POST   | `/api/books/:id/complete`         | ADMIN only    |
-| POST   | `/api/books/:id/close`            | ADMIN only    |
+| POST   | `/api/books/:id/close`            | SUPER_ADMIN only |
 | GET    | `/api/books/:id/pdf`              | any user      |
 | GET    | `/api/books/:id/audit`            | ADMIN only    |
-| GET    | `/api/users` · POST `/api/users` · PATCH `/api/users/:id` | ADMIN only |
+| GET    | `/api/users` · POST `/api/users` · PATCH `/api/users/:id` | SUPER_ADMIN / ADMIN |
 | GET    | `/api/audit-logs`                 | ADMIN only    |
 | GET    | `/api/health`                     | public        |
 

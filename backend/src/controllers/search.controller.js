@@ -7,6 +7,9 @@ export const searchEntries = asyncHandler(async (req, res) => {
 });
 
 export const compareBooks = asyncHandler(async (req, res) => {
-  const data = await searchService.compareBooks({ bookIds: req.query.books });
+  const data = await searchService.compareBooks({
+    bookIds: req.query.books,
+    ranges: req.query.ranges,
+  });
   return ok(res, data);
 });

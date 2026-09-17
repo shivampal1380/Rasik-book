@@ -6,9 +6,11 @@ import { validate, loginSchema, changePasswordSchema } from '../validators/index
 
 const router = Router();
 
+const AUTH_USERS = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
+
 router.post('/login', authRateLimiter, validate(loginSchema), login);
 router.post('/logout', authenticate, logout);
-router.get('/me', authenticate, requireRole('ADMIN', 'OPERATOR'), me);
-router.put('/password', authenticate, requireRole('ADMIN', 'OPERATOR'), validate(changePasswordSchema), changePassword);
+router.get('/me', authenticate, requireRole(...AUTH_USERS), me);
+router.put('/password', authenticate, requireRole(...AUTH_USERS), validate(changePasswordSchema), changePassword);
 
 export default router;

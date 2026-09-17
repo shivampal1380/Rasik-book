@@ -23,7 +23,7 @@ const TABS = [
 
 export default function BookDetailPage() {
   const { id } = useParams();
-  const { isAdmin } = useUser();
+  const { isAdmin, isSuperAdmin } = useUser();
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') || 'entry';
@@ -63,7 +63,7 @@ export default function BookDetailPage() {
           <RotateCcw size={16} /> Complete
         </button>
       )}
-      {isAdmin && book.status !== 'CLOSED' && (
+      {isSuperAdmin && book.status !== 'CLOSED' && (
         <button onClick={() => closeMutation.mutate()} disabled={closeMutation.isPending} className="btn-danger">
           <Lock size={16} /> Close
         </button>

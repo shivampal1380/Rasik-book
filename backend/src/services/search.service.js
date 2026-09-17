@@ -4,8 +4,9 @@ import { NotFoundError } from '../utils/errors.js';
 import { HEAD_LABEL_MAP, HEAD_DISPLAY_ORDER } from '../config/constants.js';
 import { getVisibleHeadSet } from './headconfig.service.js';
 
-// Compare head-wise totals of 2-3 books side by side.
-export async function compareBooks({ bookIds }) {
+// Compare head-wise totals of 1-4 books side by side, optionally limited to a
+// receipt-number range per book (e.g. receipts 2-30).
+export async function compareBooks({ bookIds, ranges = [] }) {
   const books = await prisma.book.findMany({
     where: { id: { in: bookIds } },
     select: { id: true, code: true, bookNumber: true, maxEntries: true },
@@ -15,33 +16,51 @@ export async function compareBooks({ bookIds }) {
   }
   const ordered = bookIds.map(id => books.find(b => b.id === id));
 
-  const groups = await prisma.bookEntry.groupBy({
-    by: ['bookId', 'head'],
-    where: { bookId: { in: bookIds } },
-    _sum: { amount: true },
-    _count: { _all: true },
-  });
-  const byBook = {};
-  const grandByBook = {};
-  for (const g of groups) {
-    byBook[g.bookId] = byBook[g.bookId] || {};
-    byBook[g.bookId][g.head] = { total: g._sum.amount ?? 0, count: g._count._all };
-    grandByBook[g.bookId] = (grandByBook[g.bookId] || 0) + (g._sum.amount ?? 0);
-  }
-
   const visible = await getVisibleHeadSet();
   const heads = HEAD_DISPLAY_ORDER.filter(h => visible.has(h));
 
+  const results = await Promise.all(
+    ordered.map(async (book, index) => {
+      const range = ranges[index] ?? {};
+      const rangeFrom = range.from ?? null;
+      const rangeTo = range.to ?? null;
+
+      const where = { bookId: book.id };
+      if (rangeFrom != null || rangeTo != null) {
+        where.entryNumber = {};
+        if (rangeFrom != null) where.entryNumber.gte = rangeFrom;
+        if (rangeTo != null) where.entryNumber.lte = rangeTo;
+      }
+
+      const groups = await prisma.bookEntry.groupBy({
+        by: ['head'],
+        where,
+        _sum: { amount: true },
+        _count: { _all: true },
+      });
+
+      const byHead = {};
+      let grandTotal = 0;
+      for (const g of groups) {
+        byHead[g.head] = { total: g._sum.amount ?? 0, count: g._count._all };
+        grandTotal += g._sum.amount ?? 0;
+      }
+
+      return {
+        id: book.id,
+        code: book.code,
+        bookNumber: book.bookNumber,
+        maxEntries: book.maxEntries,
+        range: { from: rangeFrom, to: rangeTo },
+        grandTotal,
+        byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0 }),
+      };
+    }),
+  );
+
   return {
     heads: heads.map(h => ({ head: h, label: HEAD_LABEL_MAP[h] })),
-    books: ordered.map(b => ({
-      id: b.id,
-      code: b.code,
-      bookNumber: b.bookNumber,
-      maxEntries: b.maxEntries,
-      grandTotal: grandByBook[b.id] ?? 0,
-      byHead: heads.map(h => byBook[b.id]?.[h] ?? { total: 0, count: 0 }),
-    })),
+    books: results,
   };
 }
 

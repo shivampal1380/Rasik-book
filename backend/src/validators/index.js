@@ -86,7 +86,7 @@ export const createUserSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100),
   email: z.string().trim().email(),
   password: z.string().min(8, 'Password must be at least 8 characters').max(100),
-  role: z.enum(['ADMIN', 'OPERATOR']).default('OPERATOR'),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'OPERATOR']).default('OPERATOR'),
 });
 
 export const listUsersQuerySchema = z.object({
@@ -97,7 +97,7 @@ export const listUsersQuerySchema = z.object({
 
 export const updateUserSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100).optional(),
-  role: z.enum(['ADMIN', 'OPERATOR']).optional(),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'OPERATOR']).optional(),
   isActive: z.boolean().optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').max(100).optional(),
 });
@@ -136,14 +136,38 @@ export const listAuditQuerySchema = z.object({
 });
 
 // --- Compare books ---
+const optionalReceiptNo = z.preprocess(
+  v => (v === '' || v == null ? undefined : v),
+  z.coerce.number().int().min(1).max(1000).optional(),
+);
+
+const receiptRangeSchema = z
+  .object({
+    from: optionalReceiptNo,
+    to: optionalReceiptNo,
+  })
+  .refine(r => r.from == null || r.to == null || r.from <= r.to, {
+    message: '"from" must be less than or equal to "to"',
+  });
+
 export const compareBooksQuerySchema = z.object({
   books: z.preprocess(
     v => (Array.isArray(v) ? v : v == null || v === '' ? [] : [v]),
     z
       .array(z.string().uuid())
-      .min(2, 'Select at least 2 books')
-      .max(3, 'Select up to 3 books'),
+      .min(1, 'Select at least 1 book')
+      .max(4, 'Select up to 4 books'),
   ),
+  ranges: z.preprocess(v => {
+    if (v == null || v === '') return [];
+    if (Array.isArray(v)) return v;
+    try {
+      const parsed = JSON.parse(v);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }, z.array(receiptRangeSchema).max(4).default([])),
 });
 
 // --- Global search ---

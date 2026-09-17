@@ -13,7 +13,19 @@ const USER_SELECT = {
   updatedAt: true,
 };
 
-export async function createUser({ name, email, password, role, req }) {
+export async function createUser({ name, email, password, role = 'OPERATOR', actor = {} }) {
+  const actorRole = actor.role ?? 'OPERATOR';
+
+  if (actorRole === 'OPERATOR') {
+    throw new ForbiddenError('Only admins can create users', 'ROLE_FORBIDDEN');
+  }
+  if (actorRole === 'ADMIN' && role !== 'OPERATOR') {
+    throw new ForbiddenError('Admins can only create Operator accounts', 'ROLE_FORBIDDEN');
+  }
+  if (role === 'SUPER_ADMIN' && (await prisma.user.count({ where: { role: 'SUPER_ADMIN' } })) > 0) {
+    throw new ConflictError('A Super Admin already exists', 'SUPER_ADMIN_EXISTS');
+  }
+
   try {
     const passwordHash = await bcrypt.hash(password, 10);
     return await prisma.user.create({
@@ -56,16 +68,41 @@ export async function listUsers({ query }) {
   return { items: enriched, pagination: paginate(total, page, pageSize) };
 }
 
-export async function updateUser({ id, actorId, data }) {
-  if (id === actorId && data.role && data.role !== 'ADMIN') {
-    // prevent the last admin demoting/locking themselves out entirely is good hygiene,
-    // but at minimum an admin cannot demote their own admin role
-    const actor = await prisma.user.findUnique({ where: { id: actorId } });
-    if (actor?.role === 'ADMIN' && data.isActive === false) {
-      const adminCount = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
-      if (adminCount <= 1) {
-        throw new ForbiddenError('You cannot deactivate the last active administrator', 'LAST_ADMIN');
-      }
+export async function updateUser({ id, actorId, data, actor = {} }) {
+  const actorRole = actor.role ?? 'OPERATOR';
+
+  const user = await prisma.user.findUnique({ where: { id } });
+  if (!user) throw new NotFoundError('User not found', 'USER_NOT_FOUND');
+
+  if (actorRole === 'OPERATOR') {
+    throw new ForbiddenError('Only admins can manage users', 'ROLE_FORBIDDEN');
+  }
+
+  // Admins may only manage Operators and cannot touch roles.
+  if (actorRole === 'ADMIN') {
+    if (user.role !== 'OPERATOR') {
+      throw new ForbiddenError('Admins can only manage Operator accounts', 'ROLE_FORBIDDEN');
+    }
+    if (data.role !== undefined && data.role !== 'OPERATOR') {
+      throw new ForbiddenError('Admins cannot change user roles', 'ROLE_FORBIDDEN');
+    }
+  }
+
+  // There is exactly one Super Admin; it can never be demoted or deactivated.
+  if (user.role === 'SUPER_ADMIN') {
+    if (data.isActive === false) {
+      throw new ForbiddenError('The Super Admin cannot be deactivated', 'SUPER_ADMIN_IMMUTABLE');
+    }
+    if (data.role !== undefined && data.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenError('The Super Admin role cannot be changed', 'SUPER_ADMIN_IMMUTABLE');
+    }
+  }
+
+  // Guard against creating a second Super Admin through a role change.
+  if (data.role === 'SUPER_ADMIN') {
+    const other = await prisma.user.count({ where: { role: 'SUPER_ADMIN', id: { not: id } } });
+    if (other > 0) {
+      throw new ConflictError('A Super Admin already exists', 'SUPER_ADMIN_EXISTS');
     }
   }
 
@@ -75,18 +112,7 @@ export async function updateUser({ id, actorId, data }) {
   if (data.isActive !== undefined) payload.isActive = data.isActive;
   if (data.password !== undefined) payload.passwordHash = await bcrypt.hash(data.password, 10);
 
-  if (Object.keys(payload).length === 0) {
-    return prisma.user.findUnique({ where: { id }, select: USER_SELECT });
-  }
-
-  const user = await prisma.user.findUnique({ where: { id } });
-  if (!user) throw new NotFoundError('User not found', 'USER_NOT_FOUND');
-
-  // Protect the last active admin from deactivation from any admin
-  if (payload.isActive === false && user.role === 'ADMIN' && user.isActive) {
-    const adminCount = await prisma.user.count({ where: { role: 'ADMIN', isActive: true } });
-    if (adminCount <= 1) throw new ForbiddenError('You cannot deactivate the last active administrator', 'LAST_ADMIN');
-  }
+  if (Object.keys(payload).length === 0) return user;
 
   return prisma.user.update({ where: { id }, data: payload, select: USER_SELECT });
 }

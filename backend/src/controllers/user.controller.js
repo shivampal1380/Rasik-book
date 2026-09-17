@@ -3,7 +3,7 @@ import * as userService from '../services/user.service.js';
 import { writeAudit } from '../middleware/audit.js';
 
 export const createUser = asyncHandler(async (req, res) => {
-  const user = await userService.createUser({ ...req.body, req });
+  const user = await userService.createUser({ ...req.body, actor: req.user });
   await writeAudit({
     userId: req.user.sub,
     action: 'USER_CREATED',
@@ -25,6 +25,7 @@ export const updateUser = asyncHandler(async (req, res) => {
     id: req.params.id,
     actorId: req.user.sub,
     data: req.body,
+    actor: req.user,
   });
   await writeAudit({
     userId: req.user.sub,
