@@ -51,12 +51,12 @@ export default function CreateBookModal({ open, onClose }) {
           <div>
             <label className="label">Code</label>
             <input className="input" placeholder="A01" {...register('code')} />
-            {errors.code && <p className="mt-1 text-xs text-red-600">{errors.code.message}</p>}
+            {errors.code && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.code.message}</p>}
           </div>
           <div>
             <label className="label">Book number</label>
             <input className="input" placeholder="e.g. 1256" {...register('bookNumber')} />
-            {errors.bookNumber && <p className="mt-1 text-xs text-red-600">{errors.bookNumber.message}</p>}
+            {errors.bookNumber && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.bookNumber.message}</p>}
           </div>
         </div>
 
@@ -72,12 +72,12 @@ export default function CreateBookModal({ open, onClose }) {
             {...register('isUpi')}
           />
           <span>
-            <span className="block text-sm font-medium text-slate-700">UPI book</span>
-            <span className="block text-xs text-slate-500">This book collects payments via UPI</span>
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI book</span>
+            <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI</span>
           </span>
         </label>
 
-        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
           Area is set to <span className="font-semibold">MAHAKALI</span>. Books are created with 100 receipt numbers.
         </div>
 

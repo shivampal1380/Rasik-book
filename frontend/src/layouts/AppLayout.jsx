@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Calculator, KeyRound } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Calculator, KeyRound, Moon, Sun } from 'lucide-react';
 import { useUser } from '../features/auth/UserContext.js';
 import { logout } from '../features/auth/authApi.js';
 import { queryClient } from '../lib/queryClient.js';
+import { useTheme } from '../theme/ThemeContext.jsx';
 
 export default function AppLayout() {
   const { user, isAdmin } = useUser();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -77,9 +79,20 @@ export default function AppLayout() {
       {nav}
 
       <div className="border-t border-white/10 px-5 py-4">
-        <div className="mb-3 text-xs text-slate-300">
-          Signed in as <span className="font-semibold text-white">{user?.name}</span>
-          <span className="ml-1 rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase">{user?.role}</span>
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-xs text-slate-300">
+            Signed in as <span className="font-semibold text-white">{user?.name}</span>
+            <span className="ml-1 rounded bg-white/10 px-1.5 py-0.5 text-[10px] uppercase">{user?.role}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')}
+            className="rounded-lg p-1.5 text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            title={mode === 'dark' ? 'Light theme' : 'Dark theme'}
+          >
+            {mode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
         </div>
         <button
           onClick={() => logoutMutation.mutate()}

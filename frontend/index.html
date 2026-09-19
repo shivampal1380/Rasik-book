@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rasid Book – Book Amount Entry</title>
+    <script>
+      (function () {
+        var t = { mode: 'light', accent: 'sage' };
+        try {
+          var s = JSON.parse(localStorage.getItem('rasid.theme') || 'null');
+          if (s && (s.mode === 'light' || s.mode === 'dark')) t.mode = s.mode;
+          if (s && s.accent) t.accent = s.accent;
+        } catch (e) {}
+        var r = document.documentElement;
+        r.setAttribute('data-mode', t.mode);
+        r.setAttribute('data-accent', t.accent);
+        r.style.colorScheme = t.mode;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

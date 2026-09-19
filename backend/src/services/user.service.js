@@ -13,6 +13,19 @@ const USER_SELECT = {
   updatedAt: true,
 };
 
+// Partial unique index (migration 20260919100000) that guarantees at most one
+// SUPER_ADMIN row in the database. Prisma reports it as a P2002 with the index
+// name in meta.target, which we map back to a clean conflict error so it is
+// indistinguishable from the friendly app-level guard.
+const SUPER_ADMIN_SINGLE_IDX = 'users_super_admin_single_idx';
+
+function isSuperAdminSingleViolation(err) {
+  if (err?.code !== 'P2002') return false;
+  const target = err?.meta?.target;
+  const joined = Array.isArray(target) ? target.join(',') : String(target ?? '');
+  return joined.includes(SUPER_ADMIN_SINGLE_IDX);
+}
+
 export async function createUser({ name, email, password, role = 'OPERATOR', actor = {} }) {
   const actorRole = actor.role ?? 'OPERATOR';
 
@@ -34,6 +47,9 @@ export async function createUser({ name, email, password, role = 'OPERATOR', act
     });
   } catch (err) {
     if (err?.code === 'P2002') {
+      if (isSuperAdminSingleViolation(err)) {
+        throw new ConflictError('A Super Admin already exists', 'SUPER_ADMIN_EXISTS');
+      }
       throw new ConflictError(`A user with email "${email}" already exists`, 'USER_ALREADY_EXISTS');
     }
     throw err;
@@ -114,5 +130,12 @@ export async function updateUser({ id, actorId, data, actor = {} }) {
 
   if (Object.keys(payload).length === 0) return user;
 
-  return prisma.user.update({ where: { id }, data: payload, select: USER_SELECT });
+  try {
+    return await prisma.user.update({ where: { id }, data: payload, select: USER_SELECT });
+  } catch (err) {
+    if (isSuperAdminSingleViolation(err)) {
+      throw new ConflictError('A Super Admin already exists', 'SUPER_ADMIN_EXISTS');
+    }
+    throw err;
+  }
 }

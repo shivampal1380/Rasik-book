@@ -26,7 +26,7 @@ export default function AuditTab({ bookId }) {
     <div className="card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-4 py-3 text-left">When</th>
               <th className="px-4 py-3 text-left">Action</th>
@@ -36,13 +36,13 @@ export default function AuditTab({ bookId }) {
           </thead>
           <tbody>
             {data.items.map(a => (
-              <tr key={a.id} className="border-t border-slate-100">
-                <td className="px-4 py-2.5 text-xs text-slate-500">
+              <tr key={a.id} className="border-t border-slate-100 dark:border-slate-800">
+                <td className="px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                   {new Date(a.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium' })}
                 </td>
-                <td className="px-4 py-2.5 font-medium text-slate-700">{ACTION_LABELS[a.action] || a.action}</td>
-                <td className="px-4 py-2.5 text-slate-500">{a.user?.name || '—'}</td>
-                <td className="px-4 py-2.5 text-right font-mono text-xs text-slate-500">{prettyDetail(a)}</td>
+                <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-300">{ACTION_LABELS[a.action] || a.action}</td>
+                <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">{a.user?.name || '—'}</td>
+                <td className="px-4 py-2.5 text-right font-mono text-xs text-slate-500 dark:text-slate-400">{prettyDetail(a)}</td>
               </tr>
             ))}
           </tbody>

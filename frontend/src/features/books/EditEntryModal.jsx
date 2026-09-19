@@ -79,7 +79,9 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
                   setErr('');
                 }}
                 className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
-                  head === h.key ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700'
+                  head === h.key
+                    ? 'border-brand-700 bg-brand-700 text-white dark:border-brand-500 dark:bg-brand-600'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300'
                 }`}
               >
                 {h.label}
@@ -89,7 +91,7 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
         </div>
 
         {legacyHead.length > 0 && (
-          <p className="text-xs text-amber-600">
+          <p className="text-xs text-amber-600 dark:text-amber-400">
             This head has been hidden (sessional) — it is only shown here for historical entries.
           </p>
         )}
@@ -97,7 +99,7 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
         <div>
           <label className="label" htmlFor="edit-amount">Amount (whole rupees)</label>
           <input id="edit-amount" type="number" min="1" step="1" value={amount} onChange={e => setAmount(e.target.value.replace(/[^\d]/g, ''))} className="input text-lg font-semibold" />
-          <p className="mt-1 text-xs text-slate-400">Previous amount: {formatINR(entry.amount)}</p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Previous amount: {formatINR(entry.amount)}</p>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

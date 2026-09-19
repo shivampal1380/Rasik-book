@@ -173,12 +173,14 @@ export async function completeBook(bookId) {
 export async function closeBook(bookId) {
   const book = await prisma.book.findUnique({ where: { id: bookId } });
   if (!book) throw new NotFoundError('Book not found', 'BOOK_NOT_FOUND');
-  if (book.status !== 'OPEN') {
+  // A book is closed once it has been finalised. It may be closed directly
+  // while still OPEN, or after it has been auto-completed on its 100th entry.
+  if (book.status !== 'OPEN' && book.status !== 'COMPLETED') {
     throw new ConflictError(`Book is already ${book.status.toLowerCase()}`, 'BOOK_NOT_OPEN');
   }
   return prisma.book.update({
     where: { id: bookId },
-    data: { status: 'CLOSED', completedAt: new Date() },
+    data: { status: 'CLOSED', completedAt: book.completedAt ?? new Date() },
     select: BOOK_SELECT,
   });
 }

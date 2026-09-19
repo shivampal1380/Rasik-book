@@ -47,24 +47,24 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit(d => loginMutation.mutate(d))} className="card px-6 py-6">
-          <h2 className="mb-5 text-lg font-semibold text-slate-800">Sign in</h2>
+          <h2 className="mb-5 text-lg font-semibold text-slate-800 dark:text-slate-100">Sign in</h2>
           {errors.root && <div className="mb-4"><ErrorAlert message={errors.root.message} /></div>}
 
           <div className="mb-4">
             <label className="label" htmlFor="email">Email</label>
             <input id="email" type="email" autoComplete="username" className="input" placeholder="you@example.com" {...register('email')} />
-            {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
+            {errors.email && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.email.message}</p>}
           </div>
 
           <div className="mb-6">
             <label className="label" htmlFor="password">Password</label>
             <div className="relative">
               <input id="password" type={showPw ? 'text' : 'password'} autoComplete="current-password" className="input pr-16" {...register('password')} />
-              <button type="button" onClick={() => setShowPw(s => !s)} className="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-brand-700 hover:text-brand-800">
+              <button type="button" onClick={() => setShowPw(s => !s)} className="absolute inset-y-0 right-0 px-3 text-xs font-semibold text-brand-700 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-200">
                 {showPw ? 'HIDE' : 'SHOW'}
               </button>
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
+            {errors.password && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.password.message}</p>}
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full">

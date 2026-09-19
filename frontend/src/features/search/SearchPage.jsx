@@ -54,8 +54,8 @@ export default function SearchPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Search</h1>
-        <p className="mt-1 text-sm text-slate-500">Find receipts across all books</p>
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Search</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Find receipts across all books</p>
       </div>
 
       <form onSubmit={run} className="card mb-6 space-y-4 p-5">
@@ -106,14 +106,14 @@ export default function SearchPage() {
         <button
           type="button"
           onClick={() => setAdvanced(v => !v)}
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
+          className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
           <ChevronDown size={16} className={`transition-transform ${advanced ? 'rotate-180' : ''}`} />
           Advanced search
         </button>
 
         {advanced && (
-          <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-5 dark:border-slate-800">
             <label className="block">
               <span className="label">Search text</span>
               <input
@@ -144,11 +144,11 @@ export default function SearchPage() {
       </form>
 
       {submitted && !isLoading && !error && (
-        <div className="mb-4 flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5">
-          <span className="text-sm font-bold text-slate-800">
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5 dark:bg-slate-800">
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
             {pagination?.total === 0 ? 'No results' : `${pagination?.total} result${pagination?.total === 1 ? '' : 's'}`}
           </span>
-          <span className="text-sm font-bold text-slate-800">{formatINR(totals?.grandTotal ?? 0)}</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">{formatINR(totals?.grandTotal ?? 0)}</span>
         </div>
       )}
 
@@ -171,7 +171,7 @@ export default function SearchPage() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3 text-left">Book</th>
                   <th className="px-4 py-3 text-left">Receipt#</th>
@@ -182,12 +182,12 @@ export default function SearchPage() {
               </thead>
               <tbody>
                 {items.map(e => (
-                  <tr key={e.id} className="border-t border-slate-100 hover:bg-slate-50/50">
-                    <td className="px-4 py-2.5 text-slate-600">{e.book.code}/{e.book.bookNumber}</td>
-                    <td className="px-4 py-2.5 font-semibold text-slate-700">{e.entryNumber}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{entryHeadLabel(e)}</td>
-                    <td className="px-4 py-2.5 text-right font-semibold text-slate-800">{formatINR(e.amount)}</td>
-                    <td className="px-4 py-2.5 text-right text-xs text-slate-400">
+                  <tr key={e.id} className="border-t border-slate-100 hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/40">
+                    <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{e.book.code}/{e.book.bookNumber}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300">{e.entryNumber}</td>
+                    <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{entryHeadLabel(e)}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold text-slate-800 dark:text-slate-100">{formatINR(e.amount)}</td>
+                    <td className="px-4 py-2.5 text-right text-xs text-slate-400 dark:text-slate-500">
                       {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
                   </tr>
@@ -196,8 +196,8 @@ export default function SearchPage() {
             </table>
           </div>
           {pagination && pagination.pages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-              <span className="text-xs text-slate-400">
+            <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {from}–{to} of {pagination.total} · Page {pagination.page} of {Math.max(pagination.pages, 1)}
               </span>
               <div className="flex gap-2">

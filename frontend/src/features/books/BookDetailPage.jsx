@@ -73,8 +73,8 @@ export default function BookDetailPage() {
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2 text-sm text-slate-500">
-        <Link to="/books" className="flex items-center gap-1 hover:text-slate-700">
+      <div className="mb-2 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        <Link to="/books" className="flex items-center gap-1 hover:text-slate-700 dark:hover:text-slate-200">
           <ArrowLeft size={14} /> Books
         </Link>
       </div>
@@ -82,12 +82,12 @@ export default function BookDetailPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-800">
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-800 dark:text-slate-100">
               {book.code}/{book.bookNumber}
               {book.isUpi && <UpiBadge />}
               <StatusBadge status={book.status} />
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {book.pracharak || '—'} · Area: {book.area} · Created {new Date(book.createdAt).toLocaleDateString('en-IN')}
             </p>
           </div>
@@ -97,29 +97,29 @@ export default function BookDetailPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="card p-4">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Receipts entered</div>
-          <div className="mt-1 text-xl font-bold text-slate-800">
-            {book.currentEntryNumber - 1} <span className="text-sm font-medium text-slate-400">/ {book.maxEntries}</span>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Receipts entered</div>
+          <div className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">
+            {book.currentEntryNumber - 1} <span className="text-sm font-medium text-slate-400 dark:text-slate-500">/ {book.maxEntries}</span>
           </div>
         </div>
         <div className="card p-4">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Next number</div>
-          <div className="mt-1 text-xl font-bold text-brand-700">{book.currentEntryNumber}</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Next number</div>
+          <div className="mt-1 text-xl font-bold text-brand-700 dark:text-brand-300">{book.currentEntryNumber}</div>
         </div>
         <div className="card p-4">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Total amount</div>
-          <div className="mt-1 text-xl font-bold text-slate-800">{formatINR(book.totalAmount)}</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Total amount</div>
+          <div className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">{formatINR(book.totalAmount)}</div>
         </div>
         <div className="card p-4">
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Status</div>
-          <div className="mt-1 flex items-center gap-2 text-xl font-bold text-slate-800">
-            {book.status === 'OPEN' && <PlayCircle size={20} className="text-emerald-600" />}
+          <div className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</div>
+          <div className="mt-1 flex items-center gap-2 text-xl font-bold text-slate-800 dark:text-slate-100">
+            {book.status === 'OPEN' && <PlayCircle size={20} className="text-emerald-600 dark:text-emerald-400" />}
             {book.status}
           </div>
         </div>
       </div>
 
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
         {visibleTabs.map(t => (
           <button
             key={t.key}

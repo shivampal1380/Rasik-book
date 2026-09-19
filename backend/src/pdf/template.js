@@ -44,7 +44,7 @@ export function renderStatementHTML(book) {
   * { margin:0; padding:0; box-sizing:border-box; }
   html, body { width:100%; }
   body { font-family: Arial, Helvetica, sans-serif; color:#000; }
-  @page { size: A4; margin: 6mm; }
+  @page { size: A4; margin: 10mm; }
 
   .top { width:100%; border-collapse:collapse; }
   .top td { border:none; height:11px; font-size:8pt; line-height:1.2; }

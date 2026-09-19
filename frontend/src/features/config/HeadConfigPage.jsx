@@ -28,10 +28,10 @@ export default function HeadConfigPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800">
-          <Settings2 size={24} className="text-brand-700" /> Configuration
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800 dark:text-slate-100">
+          <Settings2 size={24} className="text-brand-700 dark:text-brand-300" /> Configuration
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Manage which heads are shown and how the statement PDF is laid out. Sessional heads can be switched off — they are hidden from the entry screen, summaries and the statement PDF everywhere.
         </p>
       </div>
@@ -40,7 +40,7 @@ export default function HeadConfigPage() {
 
       <PdfLayoutSection />
 
-      <p className="mt-3 text-center text-xs text-slate-400">
+      <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
         Tip: switching a head off only hides it from new entry selection and reports. Existing entries already recorded are kept as-is.
       </p>
     </div>
@@ -55,24 +55,24 @@ function VisibilitySection({ heads, mutation }) {
     <>
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className="text-base font-semibold text-slate-800">Visible heads</h2>
-          <p className="text-xs text-slate-400">Heads shown on the entry screen, summaries, dashboard and PDF.</p>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Visible heads</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500">Heads shown on the entry screen, summaries, dashboard and PDF.</p>
         </div>
-        <span className="rounded-lg bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800">
+        <span className="rounded-lg bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-800 dark:bg-brand-500/15 dark:text-brand-300">
           {visibleCount} of {heads.length} visible
         </span>
       </div>
 
-      <div className="card divide-y divide-slate-100 p-2">
+      <div className="card divide-y divide-slate-100 p-2 dark:divide-slate-800">
         {heads.map(h => (
           <div key={h.head} className="flex items-center justify-between gap-4 px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${h.visible ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${h.visible ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'}`}>
                 {h.visible ? <Eye size={18} /> : <EyeOff size={18} />}
               </span>
               <div>
-                <div className="text-sm font-semibold text-slate-800">{h.label}</div>
-                <div className="text-xs text-slate-400">
+                <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">{h.label}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">
                   {h.visible ? 'Visible — selectable in entries and reports' : 'Hidden everywhere — sessional head'}
                 </div>
               </div>
@@ -88,7 +88,7 @@ function VisibilitySection({ heads, mutation }) {
               }}
               disabled={mutation.isPending}
               className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-                h.visible ? 'bg-emerald-500' : 'bg-slate-300'
+                h.visible ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
               }`}
             >
               <span
@@ -101,7 +101,7 @@ function VisibilitySection({ heads, mutation }) {
         ))}
       </div>
       {mutation.isPending && (
-        <p className="mt-2 text-center text-xs text-slate-400">Saving…</p>
+        <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">Saving…</p>
       )}
     </>
   );
@@ -212,19 +212,19 @@ function PdfLayoutSection() {
   return (
     <div className="card mt-8 p-6">
       <div className="mb-1 flex items-center gap-2">
-        <FileText size={18} className="text-brand-700" />
-        <h2 className="text-base font-semibold text-slate-800">Statement PDF layout</h2>
+        <FileText size={18} className="text-brand-700 dark:text-brand-300" />
+        <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Statement PDF layout</h2>
       </div>
-      <p className="mb-5 text-xs text-slate-400">
+      <p className="mb-5 text-xs text-slate-400 dark:text-slate-500">
         Seven main head slots. When more visible heads exist than these slots, column 6 lists every extra head as a <b>sub-head</b> under its title and column 7 holds their <b>Amount</b>. When there are no sub-heads, columns 6 and 7 print as normal main heads.
       </p>
 
       {err && <div className="mb-4"><ErrorAlert message={err} /></div>}
 
-      <div className="mb-5 flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <div className="mb-5 flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
         <div>
-          <div className="text-sm font-semibold text-slate-800">Sub-head mode</div>
-          <div className="text-xs text-slate-400">
+          <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Sub-head mode</div>
+          <div className="text-xs text-slate-400 dark:text-slate-500">
             {subEffective
               ? 'ON — column 6 lists sub-heads under its title, column 7 holds their Amount.'
               : 'OFF — columns 6 and 7 print as normal main head columns.'}
@@ -238,7 +238,7 @@ function PdfLayoutSection() {
           onClick={toggleMode}
           disabled={mutation.isPending}
           className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-            subEffective ? 'bg-brand-600' : 'bg-slate-300'
+            subEffective ? 'bg-brand-600 dark:bg-brand-500' : 'bg-slate-300 dark:bg-slate-600'
           } disabled:opacity-50`}
         >
           <span
@@ -275,7 +275,7 @@ function PdfLayoutSection() {
         {subEffective ? (
           <label className="block">
             <span className="label">Column 7</span>
-            <div className="input flex items-center bg-slate-50 text-sm font-semibold text-slate-600">Amount</div>
+            <div className="input flex items-center bg-slate-50 text-sm font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">Amount</div>
           </label>
         ) : (
           <label className="block">
@@ -289,10 +289,10 @@ function PdfLayoutSection() {
         )}
       </div>
 
-      <div className="mt-5 rounded-lg bg-slate-50 px-4 py-3">
+      <div className="mt-5 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
         {subEffective ? (
           <>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Sub-head logic — column 6 titled {col6Label(col6Slot, visibleHeads)}; column 7 = Amount
             </div>
             {subHeads.length ? (
@@ -300,25 +300,25 @@ function PdfLayoutSection() {
                 {subHeads.map(v => (
                   <span
                     key={v.head}
-                    className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800"
+                    className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
                   >
                     {v.label}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 No extra heads — column 7 stays blank. Add heads beyond these seven (or switch the toggle off).
               </p>
             )}
             {subHeads.length > 0 && (
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
                 These heads print their <b>name</b> in column 6 and their amount in column 7.
               </p>
             )}
           </>
         ) : (
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 dark:text-slate-500">
             <b>Normal mode</b> — sub-head logic off. Columns 6 and 7 print as normal main heads: column 6 = {col6Label(col6Slot, visibleHeads)}, column 7 = {col6Label(col7Slot, visibleHeads)}.
             {subHeads.length > 0 && (
               <>
@@ -331,7 +331,7 @@ function PdfLayoutSection() {
 
       <div className="mt-5 flex items-center justify-end gap-2">
         {dirty && (
-          <span className="text-xs text-slate-400">Unsaved changes</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">Unsaved changes</span>
         )}
         <button type="button" onClick={save} disabled={mutation.isPending || !dirty} className="btn-primary">
           {mutation.isPending ? <Spinner size="sm" className="border-white/40 border-t-white" /> : <Save size={16} />} Save layout

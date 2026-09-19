@@ -50,7 +50,7 @@ export default function EntriesTab({ bookId }) {
         <div className="flex gap-2">
           <button
             onClick={() => setHead('')}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${!head ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${!head ? 'bg-brand-700 text-white dark:bg-brand-600' : 'bg-white text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700'}`}
           >
             All
           </button>
@@ -61,21 +61,21 @@ export default function EntriesTab({ bookId }) {
                 setHead(h.key);
                 setPage(1);
               }}
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${head === h.key ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${head === h.key ? 'bg-brand-700 text-white dark:bg-brand-600' : 'bg-white text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700'}`}
             >
               {headLabel(h.key)}
             </button>
           ))}
         </div>
-        <div className="text-sm text-slate-500">
-          Entries {from}–{to} of {pagination.total} · Total <span className="font-bold text-slate-800">{formatINR(headTotals?.total ?? totals.grandTotal)}</span>
+        <div className="text-sm text-slate-500 dark:text-slate-400">
+          Entries {from}–{to} of {pagination.total} · Total <span className="font-bold text-slate-800 dark:text-slate-100">{formatINR(headTotals?.total ?? totals.grandTotal)}</span>
         </div>
       </div>
 
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3 text-left">No.</th>
                 <th className="px-4 py-3 text-left">Head</th>
@@ -89,52 +89,52 @@ export default function EntriesTab({ bookId }) {
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
+                  <td colSpan={isAdmin ? 7 : 6} className="px-4 py-10 text-center text-slate-400 dark:text-slate-500">
                     No entries found.
                   </td>
                 </tr>
               )}
               {items.map(e => (
-                <tr key={e.id} className={`border-t border-slate-100 hover:bg-slate-50/50 ${e.cancelledAt ? 'opacity-60' : ''}`}>
-                  <td className="px-4 py-2.5 font-semibold text-slate-700">
+                <tr key={e.id} className={`border-t border-slate-100 hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/40 ${e.cancelledAt ? 'opacity-60' : ''}`}>
+                  <td className="px-4 py-2.5 font-semibold text-slate-700 dark:text-slate-300">
                     {e.entryNumber}
                     {e.cancelledAt && (
-                      <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-red-700">
+                      <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-red-700 dark:bg-red-500/20 dark:text-red-300">
                         cancelled
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600">{entryHeadLabel(e)}</td>
-                  <td className={`px-4 py-2.5 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{entryHeadLabel(e)}</td>
+                  <td className={`px-4 py-2.5 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
                     {formatINR(e.amount)}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-slate-500">
+                  <td className="px-4 py-2.5 text-right text-slate-500 dark:text-slate-400">
                     {e.cancelledAt ? '—' : formatINR(data.runningTotals?.[e.entryNumber] ?? '—')}
                   </td>
-                  <td className="px-4 py-2.5 text-right text-xs text-slate-400">
+                  <td className="px-4 py-2.5 text-right text-xs text-slate-400 dark:text-slate-500">
                     {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                   </td>
                   <td className="px-4 py-2.5">
                     {e.cancelledAt ? (
                       <div className="text-xs">
-                        <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/20 dark:text-red-300 dark:ring-red-400/20">
                           Cancelled
                         </span>
-                        <div className="mt-1 text-[11px] text-slate-400">
+                        <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
                           {new Date(e.cancelledAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
                       </div>
                     ) : e.isCorrected ? (
                       <div className="text-xs">
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/20">
                           Corrected
                         </span>
-                        <div className="mt-1 text-[11px] text-slate-400">
+                        <div className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
                           {new Date(e.correctedAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-300">—</span>
+                      <span className="text-xs text-slate-300 dark:text-slate-600">—</span>
                     )}
                   </td>
                   {isAdmin && (
@@ -147,7 +147,7 @@ export default function EntriesTab({ bookId }) {
                             }
                           }}
                           disabled={toggleCancel.isPending}
-                          className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+                          className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                         >
                           Restore
                         </button>
@@ -155,7 +155,7 @@ export default function EntriesTab({ bookId }) {
                         <div className="flex items-center justify-end gap-3">
                           <button
                             onClick={() => setEditing(e)}
-                            className="text-xs font-semibold text-brand-700 hover:text-brand-900"
+                            className="text-xs font-semibold text-brand-700 hover:text-brand-900 dark:text-brand-300 dark:hover:text-brand-200"
                           >
                             Edit
                           </button>
@@ -166,7 +166,7 @@ export default function EntriesTab({ bookId }) {
                               }
                             }}
                             disabled={toggleCancel.isPending}
-                            className="text-xs font-semibold text-red-600 hover:text-red-800"
+                            className="text-xs font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                           >
                             Cancel
                           </button>
@@ -179,8 +179,8 @@ export default function EntriesTab({ bookId }) {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
-          <span className="text-xs text-slate-400">Page {pagination.page} of {Math.max(pagination.pages, 1)}</span>
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 dark:border-slate-800">
+          <span className="text-xs text-slate-400 dark:text-slate-500">Page {pagination.page} of {Math.max(pagination.pages, 1)}</span>
           <div className="flex gap-2">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="btn-secondary px-2 py-1.5">
               <ChevronLeft size={16} />

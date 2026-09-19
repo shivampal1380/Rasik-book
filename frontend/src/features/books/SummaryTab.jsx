@@ -21,9 +21,9 @@ export default function SummaryTab({ bookId, book }) {
   return (
     <div className="grid gap-6 lg:grid-cols-3">
       <div className="card overflow-hidden lg:col-span-2">
-        <div className="border-b border-slate-100 px-5 py-3">
-          <h2 className="text-base font-semibold text-slate-800">Head-wise summary</h2>
-          <p className="text-xs text-slate-400">
+        <div className="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Head-wise summary</h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
             {book.code}/{book.bookNumber} · {entryCount} receipts recorded
             {summary.data.cancelledEntries > 0
               ? ` · ${summary.data.cancelledEntries} receipt${summary.data.cancelledEntries === 1 ? '' : 's'} cancelled`
@@ -32,7 +32,7 @@ export default function SummaryTab({ bookId, book }) {
         </div>
         <div className="table-wrap">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               <th className="px-5 py-3 text-left">Head</th>
               <th className="px-5 py-3 text-right">Receipts</th>
@@ -43,19 +43,19 @@ export default function SummaryTab({ bookId, book }) {
             {HEADS.filter(h => visibleKeySet.has(h.key)).map(h => {
               const item = byHead.find(x => x.head === h.key);
               return (
-                <tr key={h.key} className="border-t border-slate-100">
-                  <td className="px-5 py-3 font-semibold text-slate-700">{headLabel(h.key)}</td>
-                  <td className="px-5 py-3 text-right text-slate-500">{item?.count ?? 0}</td>
-                  <td className="px-5 py-3 text-right font-semibold text-slate-800">{formatINR(item?.total ?? 0)}</td>
+                <tr key={h.key} className="border-t border-slate-100 dark:border-slate-800">
+                  <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-300">{headLabel(h.key)}</td>
+                  <td className="px-5 py-3 text-right text-slate-500 dark:text-slate-400">{item?.count ?? 0}</td>
+                  <td className="px-5 py-3 text-right font-semibold text-slate-800 dark:text-slate-100">{formatINR(item?.total ?? 0)}</td>
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-slate-200 bg-slate-50">
-              <td className="px-5 py-3 font-bold text-slate-800">TOTAL Rs.</td>
-              <td className="px-5 py-3 text-right font-bold text-slate-800">{entryCount}</td>
-              <td className="px-5 py-3 text-right font-bold text-brand-800">{formatINR(grandTotal)}</td>
+            <tr className="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
+              <td className="px-5 py-3 font-bold text-slate-800 dark:text-slate-100">TOTAL Rs.</td>
+              <td className="px-5 py-3 text-right font-bold text-slate-800 dark:text-slate-100">{entryCount}</td>
+              <td className="px-5 py-3 text-right font-bold text-brand-800 dark:text-brand-300">{formatINR(grandTotal)}</td>
             </tr>
           </tfoot>
         </table>
@@ -64,7 +64,7 @@ export default function SummaryTab({ bookId, book }) {
 
       <div className="space-y-4">
         <div className="card p-5">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Book details</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Book details</h2>
           <dl className="space-y-2 text-sm">
             {[
               ['Receipt book', `${book.code}/${book.bookNumber}`],
@@ -74,15 +74,15 @@ export default function SummaryTab({ bookId, book }) {
               ['Receipts', `${entryCount} / ${maxEntries}`],
             ].map(([k, v]) => (
               <div key={k} className="flex justify-between">
-                <dt className="text-slate-500">{k}</dt>
-                <dd className="font-semibold text-slate-800">{v}</dd>
+                <dt className="text-slate-500 dark:text-slate-400">{k}</dt>
+                <dd className="font-semibold text-slate-800 dark:text-slate-100">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
-        <div className="card border-brand-200 bg-brand-50 p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-brand-700">Grand total</div>
-          <div className="mt-1 text-2xl font-bold text-brand-800">{formatINR(grandTotal)}</div>
+        <div className="card border-brand-200 bg-brand-50 p-5 dark:border-brand-500/40 dark:bg-brand-500/10">
+          <div className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">Grand total</div>
+          <div className="mt-1 text-2xl font-bold text-brand-800 dark:text-brand-200">{formatINR(grandTotal)}</div>
         </div>
       </div>
     </div>

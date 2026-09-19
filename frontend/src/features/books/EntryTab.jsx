@@ -63,16 +63,16 @@ export default function EntryTab({ book }) {
       <div className="card p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-800">Record receipt</h2>
-            <p className="text-sm text-slate-500">
-              Next receipt number: <span className="font-bold text-brand-700">{book.currentEntryNumber}</span>
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Record receipt</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Next receipt number: <span className="font-bold text-brand-700 dark:text-brand-300">{book.currentEntryNumber}</span>
             </p>
           </div>
           <StatusBadge status={book.status} />
         </div>
 
         {disabled && (
-          <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
             This book is {book.status.toLowerCase()} and cannot accept new entries.
           </div>
         )}
@@ -93,22 +93,22 @@ export default function EntryTab({ book }) {
                 }}
                 className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
                   head === h.key
-                    ? 'border-brand-700 bg-brand-700 text-white'
-                    : 'border-slate-300 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700'
+                    ? 'border-brand-700 bg-brand-700 text-white dark:border-brand-500 dark:bg-brand-600'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300'
                 }`}
               >
                 {h.label}
               </button>
             ))}
           </div>
-          <p className="mt-1 text-xs text-slate-400">Pick a head.</p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Pick a head.</p>
         </div>
 
         <form onSubmit={submit} className="flex items-end gap-3">
           <div className="flex-1">
             <label className="label" htmlFor="amount">Amount (whole rupees)</label>
             <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">₹</span>
+              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">₹</span>
               <input
                 id="amount"
                 ref={amountRef}
@@ -129,23 +129,23 @@ export default function EntryTab({ book }) {
           </button>
         </form>
 
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
           Saved {book.currentEntryNumber - 1} of {book.maxEntries} receipts · {book.maxEntries - (book.currentEntryNumber - 1)} remaining
         </p>
       </div>
 
       <div className="card p-6">
-        <h2 className="mb-4 text-base font-semibold text-slate-800">All entries</h2>
+        <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-100">All entries</h2>
         {entries?.items?.length ? (
           <>
-            <div className="mb-3 flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5">
-              <span className="text-sm font-bold text-slate-800">Total</span>
-              <span className="text-base font-bold text-slate-800">{formatINR(entries.totals.grandTotal)}</span>
+            <div className="mb-3 flex items-center justify-between rounded-lg bg-slate-50 px-4 py-2.5 dark:bg-slate-800">
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Total</span>
+              <span className="text-base font-bold text-slate-800 dark:text-slate-100">{formatINR(entries.totals.grandTotal)}</span>
             </div>
             <div className="max-h-[400px] overflow-y-auto pr-1">
               <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400">
+                <thead className="sticky top-0 bg-white dark:bg-slate-900">
+                  <tr className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:text-slate-500">
                     <th className="pb-2">No.</th>
                     <th className="pb-2">Head</th>
                     <th className="pb-2 text-right">Amount</th>
@@ -153,17 +153,17 @@ export default function EntryTab({ book }) {
                 </thead>
                 <tbody>
                   {entries.items.map(e => (
-                    <tr key={e.id} className={`border-b border-slate-50 ${e.cancelledAt ? 'opacity-60' : ''}`}>
-                      <td className="py-2 font-semibold text-slate-700">
+                    <tr key={e.id} className={`border-b border-slate-50 dark:border-slate-800/60 ${e.cancelledAt ? 'opacity-60' : ''}`}>
+                      <td className="py-2 font-semibold text-slate-700 dark:text-slate-300">
                         {e.entryNumber}
                         {e.cancelledAt && (
-                          <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-700">
+                          <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-700 dark:bg-red-500/20 dark:text-red-300">
                             cancelled
                           </span>
                         )}
                       </td>
-                      <td className="py-2 text-slate-600">{entryHeadLabel(e)}</td>
-                      <td className={`py-2 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                      <td className="py-2 text-slate-600 dark:text-slate-400">{entryHeadLabel(e)}</td>
+                      <td className={`py-2 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
                         {formatINR(e.amount)}
                       </td>
                     </tr>
@@ -173,7 +173,7 @@ export default function EntryTab({ book }) {
             </div>
           </>
         ) : (
-          <p className="text-sm text-slate-400">No entries yet.</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">No entries yet.</p>
         )}
       </div>
     </div>

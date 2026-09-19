@@ -6,8 +6,8 @@ export default function PdfTab({ bookId, book }) {
     <div className="card p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-slate-800">Statement PDF</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Statement PDF</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Generates the formatted Statement of Receipts for {book.code}/{book.bookNumber}.
           </p>
         </div>
@@ -21,9 +21,9 @@ export default function PdfTab({ bookId, book }) {
       <iframe
         title="Statement PDF preview"
         src={`${pdfUrl(bookId)}?preview=1`}
-        className="h-[72vh] w-full rounded-lg border border-slate-200 bg-slate-50"
+        className="h-[72vh] w-full rounded-lg border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/60"
       />
-      <p className="mt-2 text-center text-xs text-slate-400">
+      <p className="mt-2 text-center text-xs text-slate-400 dark:text-slate-500">
         <FileDown size={14} className="mr-1 inline" />
         Tip: use the print button in your PDF viewer to save or print.
       </p>

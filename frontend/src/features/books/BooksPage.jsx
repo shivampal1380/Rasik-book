@@ -14,13 +14,13 @@ function Progress({ used, max }) {
   const color = pct >= 100 ? 'bg-amber-500' : pct >= 80 ? 'bg-sky-500' : 'bg-emerald-600';
   return (
     <div>
-      <div className="mb-1 flex justify-between text-xs text-slate-500">
+      <div className="mb-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
         <span>
           {used}/{max} receipts
         </span>
         <span className="font-semibold">{pct}%</span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-slate-100">
+      <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800">
         <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -40,8 +40,8 @@ export default function BooksPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Books</h1>
-          <p className="mt-1 text-sm text-slate-500">Receipt books used for amount entry</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Books</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Receipt books used for amount entry</p>
         </div>
         {isAdmin && (
           <button onClick={() => setShowCreate(true)} className="btn-primary">
@@ -56,7 +56,9 @@ export default function BooksPage() {
             key={s}
             onClick={() => setStatus(s)}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-              status === s ? 'bg-brand-700 text-white' : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-50'
+              status === s
+                ? 'bg-brand-700 text-white dark:bg-brand-600'
+                : 'bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-700/60'
             }`}
           >
             {s === '' ? 'All' : s.toLowerCase()}
@@ -90,11 +92,11 @@ export default function BooksPage() {
           >
             <div className="mb-3 flex items-start justify-between">
               <div>
-                <div className="text-lg font-bold text-slate-800">
+                <div className="text-lg font-bold text-slate-800 dark:text-slate-100">
                   {b.code}/{b.bookNumber}
                 </div>
-                <div className="text-xs text-slate-500">{b.pracharak || '—'}</div>
-                <div className="text-xs text-slate-400">Area: {b.area}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">{b.pracharak || '—'}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">Area: {b.area}</div>
               </div>
               <div className="flex items-center gap-2">
                   {b.isUpi && <UpiBadge />}
@@ -103,8 +105,8 @@ export default function BooksPage() {
             </div>
 
             <div className="mb-4 flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700">{formatINR(b.totalAmount)}</span>
-              <span className="text-xs text-slate-400">
+              <span className="font-semibold text-slate-700 dark:text-slate-200">{formatINR(b.totalAmount)}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {b.isFull ? 'Book full' : `${b.entriesRemaining} left`}
               </span>
             </div>

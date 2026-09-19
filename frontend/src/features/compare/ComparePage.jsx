@@ -81,10 +81,10 @@ export default function ComparePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800 dark:text-slate-100">
           Book Tally
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Head-wise totals of 1–4 books side by side, optionally limited to a receipt range (e.g. 2–30)
         </p>
       </div>
@@ -96,10 +96,10 @@ export default function ComparePage() {
             const disabled = !selected[slot.key];
             const bad = !disabled && toReceiptNo(slot.range.from) > toReceiptNo(slot.range.to);
             return (
-              <div key={slot.key} className="rounded-lg border border-slate-200 p-3">
+              <div key={slot.key} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                 <span className="label">
                   {slot.label}
-                  {!slot.required && <span className="ml-1 text-xs font-normal text-slate-400">optional</span>}
+                  {!slot.required && <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">optional</span>}
                 </span>
                 <select
                   value={selected[slot.key]}
@@ -117,7 +117,7 @@ export default function ComparePage() {
                 </select>
 
                 <div className="mt-3">
-                  <span className="text-xs font-medium text-slate-500">Receipt no. range</span>
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Receipt no. range</span>
                   <div className="mt-1 flex items-center gap-2">
                     <input
                       type="number"
@@ -129,7 +129,7 @@ export default function ComparePage() {
                       onChange={e => setRange(slot.key, 'from', e.target.value)}
                       className="input"
                     />
-                    <span className="text-slate-400">–</span>
+                    <span className="text-slate-400 dark:text-slate-500">–</span>
                     <input
                       type="number"
                       min="1"
@@ -141,14 +141,14 @@ export default function ComparePage() {
                       className="input"
                     />
                   </div>
-                  {bad && <p className="mt-1 text-[11px] text-red-600">“From” must be ≤ “To”.</p>}
+                  {bad && <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">“From” must be ≤ “To”.</p>}
                 </div>
               </div>
             );
           })}
         </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-          <p className="text-xs text-slate-400">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+          <p className="text-xs text-slate-400 dark:text-slate-500">
             Leave the range blank to include every receipt in a book.
           </p>
           <button
@@ -180,20 +180,20 @@ export default function ComparePage() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-3 text-left">Head</th>
                   {data.books.map(b => (
                     <th key={b.id} className="px-4 py-3 text-right">
                       {b.code}/{b.bookNumber}
-                      <span className="ml-1 block text-[10px] font-medium normal-case text-slate-400">
+                      <span className="ml-1 block text-[10px] font-medium normal-case text-slate-400 dark:text-slate-500">
                         {rangeLabel(b)}
                       </span>
                     </th>
                   ))}
-                  <th className="border-l border-brand-200 bg-brand-50 px-4 py-3 text-right">
+                  <th className="border-l border-brand-200 bg-brand-50 px-4 py-3 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
                     Total
-                    <span className="ml-1 block text-[10px] font-medium normal-case text-brand-600">
+                    <span className="ml-1 block text-[10px] font-medium normal-case text-brand-600 dark:text-brand-300">
                       all books
                     </span>
                   </th>
@@ -201,8 +201,8 @@ export default function ComparePage() {
               </thead>
               <tbody>
                 {data.heads.map((h, idx) => (
-                  <tr key={h.head} className="border-t border-slate-100 hover:bg-slate-50/50">
-                    <td className="px-4 py-2.5 font-medium text-slate-700">{h.label}</td>
+                  <tr key={h.head} className="border-t border-slate-100 hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/40">
+                    <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-300">{h.label}</td>
                     {data.books.map(b => {
                       const cell = b.byHead[idx];
                       const total = cell?.total ?? 0;
@@ -211,37 +211,37 @@ export default function ComparePage() {
                         <td key={b.id} className="px-4 py-2.5 text-right">
                           {total > 0 ? (
                             <>
-                              <div className="font-semibold text-slate-800">{formatINR(total)}</div>
-                              <div className="text-[11px] text-slate-400">{count} receipt{count === 1 ? '' : 's'}</div>
+                              <div className="font-semibold text-slate-800 dark:text-slate-100">{formatINR(total)}</div>
+                              <div className="text-[11px] text-slate-400 dark:text-slate-500">{count} receipt{count === 1 ? '' : 's'}</div>
                             </>
                           ) : (
-                            <span className="text-slate-300">–</span>
+                            <span className="text-slate-300 dark:text-slate-600">–</span>
                           )}
                         </td>
                       );
                     })}
-                    <td className="border-l border-brand-200 bg-brand-50 px-4 py-2.5 text-right">
+                    <td className="border-l border-brand-200 bg-brand-50 px-4 py-2.5 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
                       {combinedTotals[idx].total > 0 ? (
                         <>
-                          <div className="font-bold text-brand-800">{formatINR(combinedTotals[idx].total)}</div>
-                          <div className="text-[11px] text-brand-600">
+                          <div className="font-bold text-brand-800 dark:text-brand-200">{formatINR(combinedTotals[idx].total)}</div>
+                          <div className="text-[11px] text-brand-600 dark:text-brand-300">
                             {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
                           </div>
                         </>
                       ) : (
-                        <span className="text-slate-300">–</span>
+                        <span className="text-slate-300 dark:text-slate-600">–</span>
                       )}
                     </td>
                   </tr>
                 ))}
-                <tr className="border-t-2 border-slate-200 bg-slate-50">
-                  <td className="px-4 py-2.5 font-bold text-slate-800">TOTAL</td>
+                <tr className="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
+                  <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-100">TOTAL</td>
                   {data.books.map(b => (
-                    <td key={b.id} className="px-4 py-2.5 text-right font-bold text-slate-800">
+                    <td key={b.id} className="px-4 py-2.5 text-right font-bold text-slate-800 dark:text-slate-100">
                       {formatINR(b.grandTotal)}
                     </td>
                   ))}
-                  <td className="border-l border-brand-200 bg-brand-100 px-4 py-2.5 text-right font-bold text-brand-900">
+                  <td className="border-l border-brand-200 bg-brand-100 px-4 py-2.5 text-right font-bold text-brand-900 dark:border-brand-500/40 dark:bg-brand-500/15 dark:text-brand-200">
                     {formatINR(combinedGrand)}
                   </td>
                 </tr>
