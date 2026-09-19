@@ -27,7 +27,7 @@ router.get('/dashboard', dashboard);
 
 router.get('/audit-logs', requireAdmin, validate(listAuditQuerySchema, 'query'), listAuditLogs);
 
-router.get('/head-config', requireAdmin, getHeadConfig);
+router.get('/head-config', getHeadConfig);
 router.put('/head-config/:head', requireAdmin, validate(headConfigParamSchema, 'params'), validate(updateHeadConfigSchema), updateHeadVisibility);
 
 router.get('/pdf-config', requireAdmin, getPdfConfig);

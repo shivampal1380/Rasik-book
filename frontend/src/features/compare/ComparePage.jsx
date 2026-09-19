@@ -72,11 +72,17 @@ export default function ComparePage() {
     return `Receipts ${from ?? 1}–${to ?? b.maxEntries}`;
   };
 
+  const combinedTotals = data?.heads?.map((h, idx) => ({
+    total: data.books.reduce((s, b) => s + (b.byHead[idx]?.total ?? 0), 0),
+    count: data.books.reduce((s, b) => s + (b.byHead[idx]?.count ?? 0), 0),
+  }));
+  const combinedGrand = data?.books?.reduce((s, b) => s + (b.grandTotal ?? 0), 0);
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-800">
-          Compare Books
+          Book Tally
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Head-wise totals of 1–4 books side by side, optionally limited to a receipt range (e.g. 2–30)
@@ -185,6 +191,12 @@ export default function ComparePage() {
                       </span>
                     </th>
                   ))}
+                  <th className="border-l border-brand-200 bg-brand-50 px-4 py-3 text-right">
+                    Total
+                    <span className="ml-1 block text-[10px] font-medium normal-case text-brand-600">
+                      all books
+                    </span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -208,6 +220,18 @@ export default function ComparePage() {
                         </td>
                       );
                     })}
+                    <td className="border-l border-brand-200 bg-brand-50 px-4 py-2.5 text-right">
+                      {combinedTotals[idx].total > 0 ? (
+                        <>
+                          <div className="font-bold text-brand-800">{formatINR(combinedTotals[idx].total)}</div>
+                          <div className="text-[11px] text-brand-600">
+                            {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
+                          </div>
+                        </>
+                      ) : (
+                        <span className="text-slate-300">–</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 <tr className="border-t-2 border-slate-200 bg-slate-50">
@@ -217,6 +241,9 @@ export default function ComparePage() {
                       {formatINR(b.grandTotal)}
                     </td>
                   ))}
+                  <td className="border-l border-brand-200 bg-brand-100 px-4 py-2.5 text-right font-bold text-brand-900">
+                    {formatINR(combinedGrand)}
+                  </td>
                 </tr>
               </tbody>
             </table>

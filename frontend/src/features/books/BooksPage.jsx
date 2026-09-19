@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { fetchBooks } from './booksApi.js';
 import CreateBookModal from './CreateBookModal.jsx';
-import { StatusBadge, EmptyState, ErrorAlert } from '../../components/ui/Feedback.jsx';
+import { StatusBadge, UpiBadge, EmptyState, ErrorAlert } from '../../components/ui/Feedback.jsx';
 import { PageLoader } from '../../components/ui/Spinner.jsx';
 import { formatINR, getErrorMessage } from '../../lib/api.js';
+import { useUser } from '../auth/UserContext.js';
 
 function Progress({ used, max }) {
   const pct = Math.min(100, Math.round((used / max) * 100));
@@ -27,6 +28,7 @@ function Progress({ used, max }) {
 }
 
 export default function BooksPage() {
+  const { isAdmin } = useUser();
   const [showCreate, setShowCreate] = useState(false);
   const [status, setStatus] = useState('');
   const { data, isLoading, error } = useQuery({
@@ -41,9 +43,11 @@ export default function BooksPage() {
           <h1 className="text-2xl font-bold text-slate-800">Books</h1>
           <p className="mt-1 text-sm text-slate-500">Receipt books used for amount entry</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-primary">
-          <Plus size={16} /> New book
-        </button>
+        {isAdmin && (
+          <button onClick={() => setShowCreate(true)} className="btn-primary">
+            <Plus size={16} /> New book
+          </button>
+        )}
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -66,11 +70,13 @@ export default function BooksPage() {
       {data && data.items.length === 0 && (
         <EmptyState
           title="No books yet"
-          hint="Create your first receipt book to start entering amounts."
+          hint="Add your first receipt book to start entering amounts."
           action={
-            <button onClick={() => setShowCreate(true)} className="btn-primary">
-              <Plus size={16} /> Create book
-            </button>
+            isAdmin ? (
+              <button onClick={() => setShowCreate(true)} className="btn-primary">
+                <Plus size={16} /> Create book
+              </button>
+            ) : null
           }
         />
       )}
@@ -90,7 +96,10 @@ export default function BooksPage() {
                 <div className="text-xs text-slate-500">{b.pracharak || '—'}</div>
                 <div className="text-xs text-slate-400">Area: {b.area}</div>
               </div>
-              <StatusBadge status={b.status} />
+              <div className="flex items-center gap-2">
+                  {b.isUpi && <UpiBadge />}
+                  <StatusBadge status={b.status} />
+                </div>
             </div>
 
             <div className="mb-4 flex items-center justify-between text-sm">

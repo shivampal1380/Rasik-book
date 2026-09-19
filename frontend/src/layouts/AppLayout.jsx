@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Scale, KeyRound } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Users, Settings2, LogOut, Menu, X, Search, Calculator, KeyRound } from 'lucide-react';
 import { useUser } from '../features/auth/UserContext.js';
 import { logout } from '../features/auth/authApi.js';
 import { queryClient } from '../lib/queryClient.js';
@@ -38,7 +38,7 @@ export default function AppLayout() {
         <Search size={18} /> Search
       </NavLink>
       <NavLink to="/compare" className={linkCls} onClick={closeSidebar}>
-        <Scale size={18} /> Compare
+        <Calculator size={18} /> Book Tally
       </NavLink>
       <NavLink to="/settings" className={linkCls} onClick={closeSidebar}>
         <KeyRound size={18} /> Settings

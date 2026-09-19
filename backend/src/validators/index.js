@@ -28,6 +28,7 @@ export const createBookSchema = z.object({
     .regex(/^[A-Za-z0-9._\-/]+$/, 'Book number may contain letters, numbers, dot, dash, slash'),
   pracharak: z.string().trim().max(100).optional().nullable(),
   area: z.string().trim().max(100).optional().nullable(),
+  isUpi: z.boolean().optional(),
 });
 
 export const listBooksQuerySchema = z.object({
@@ -60,6 +61,9 @@ export const createEntrySchema = z.object({
     })
     .refine(n => Number.isSafeInteger(n) && n > 0, {
       message: 'Amount must be a whole number greater than zero',
+    })
+    .refine(n => n <= 2_000_000_000, {
+      message: 'Amount is too large',
     }),
 });
 
@@ -72,10 +76,15 @@ export const listEntriesQuerySchema = z.object({
   order: z.enum(['asc', 'desc']).default('asc'),
 });
 
-export const updateEntrySchema = z.object({
-  head: z.enum(HEAD_VALUES, { message: 'A valid head must be selected' }),
-  amount: createEntrySchema.shape.amount,
-});
+export const updateEntrySchema = z
+  .object({
+    head: z.enum(HEAD_VALUES, { message: 'A valid head must be selected' }).optional(),
+    amount: createEntrySchema.shape.amount.optional(),
+    cancelled: z.boolean().optional(),
+  })
+  .refine(d => d.cancelled != null || (d.head != null && d.amount != null), {
+    message: 'Provide head and amount to correct, or cancelled to cancel/restore a receipt',
+  });
 
 export const entryParamSchema = z.object({
   entryId: z.string().uuid(),

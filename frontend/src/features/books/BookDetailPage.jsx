@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, FileDown, PlayCircle, RotateCcw, Lock } from 'lucide-react';
 import { fetchBook, completeBook, closeBook, pdfUrl } from './booksApi.js';
 import { useUser } from '../auth/UserContext.js';
-import { StatusBadge, ErrorAlert } from '../../components/ui/Feedback.jsx';
+import { StatusBadge, UpiBadge, ErrorAlert } from '../../components/ui/Feedback.jsx';
 import { PageLoader } from '../../components/ui/Spinner.jsx';
 import EntryTab from './EntryTab.jsx';
 import EntriesTab from './EntriesTab.jsx';
@@ -84,6 +84,7 @@ export default function BookDetailPage() {
           <div>
             <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-800">
               {book.code}/{book.bookNumber}
+              {book.isUpi && <UpiBadge />}
               <StatusBadge status={book.status} />
             </h1>
             <p className="mt-1 text-sm text-slate-500">

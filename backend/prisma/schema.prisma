@@ -51,6 +51,7 @@ model User {
 
   booksCreated  Book[]      @relation("BookCreatedBy")
   entriesEnterd BookEntry[] @relation("EntryCreatedBy")
+  auditLogs     AuditLog[]  @relation("AuditByUser")
 
   @@map("users")
 }
@@ -64,6 +65,7 @@ model Book {
   maxEntries         Int        @default(100)
   pracharak          String?
   area               String?
+  isUpi              Boolean     @default(false)
   createdBy          String
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
@@ -90,6 +92,8 @@ model BookEntry {
   updatedAt   DateTime  @updatedAt
   isCorrected Boolean   @default(false)
   correctedAt DateTime?
+  cancelledAt DateTime?
+  cancelledBy String?
 
   book      Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
   createdByUser User   @relation("EntryCreatedBy", fields: [createdBy], references: [id])
@@ -137,6 +141,8 @@ model AuditLog {
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
+
+  user      User?    @relation("AuditByUser", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([entity, entityId])
   @@index([userId])

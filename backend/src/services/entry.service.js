@@ -128,6 +128,8 @@ export async function listEntries({ bookId, query }) {
         updatedAt: true,
         isCorrected: true,
         correctedAt: true,
+        cancelledAt: true,
+        cancelledBy: true,
         createdByUser: { select: { id: true, name: true, email: true } },
       },
     }),
@@ -137,12 +139,12 @@ export async function listEntries({ bookId, query }) {
 
   const byHeadRaw = await prisma.bookEntry.groupBy({
     by: ['head'],
-    where: { bookId },
+    where: { bookId, cancelledAt: null },
     _sum: { amount: true },
     _count: { _all: true },
   });
   const grand = await prisma.bookEntry.aggregate({
-    where: { bookId },
+    where: { bookId, cancelledAt: null },
     _sum: { amount: true },
   });
 
@@ -166,7 +168,7 @@ export async function listEntries({ bookId, query }) {
 
 async function buildRunningTotals(bookId) {
   const rows = await prisma.bookEntry.findMany({
-    where: { bookId },
+    where: { bookId, cancelledAt: null },
     orderBy: { entryNumber: 'asc' },
     select: { entryNumber: true, amount: true },
   });
@@ -180,16 +182,68 @@ async function buildRunningTotals(bookId) {
 }
 
 // ---------------------------------------------------------------------------
-// Correct (update) an entry. Marks the entry as corrected with the timestamp,
-// and records the previous values in the audit log. Admin only.
+// Update an entry: either CORRECT it (head/amount) or CANCEL / RESTORE it
+// (cancelled flag). Marks corrections with the timestamp and records audit.
+// Admin only.
 // ---------------------------------------------------------------------------
-export async function updateEntry({ bookId, entryId, head, amount, userId, req }) {
+export async function updateEntry({ bookId, entryId, head, amount, cancelled, userId, req }) {
   return prisma.$transaction(async tx => {
     const entry = await tx.bookEntry.findUnique({ where: { id: entryId } });
     if (!entry || entry.bookId !== bookId) {
       throw new NotFoundError('Entry not found in this book', 'ENTRY_NOT_FOUND');
     }
 
+    const book = await tx.book.findUnique({ where: { id: bookId }, select: { status: true } });
+    if (!book) throw new NotFoundError('Book not found', 'BOOK_NOT_FOUND');
+    if (book.status === 'CLOSED') {
+      throw new ConflictError('Book is closed and can no longer be modified', 'BOOK_CLOSED');
+    }
+
+    // Cancel / restore branch.
+    if (cancelled != null) {
+      const isCancelled = !!entry.cancelledAt;
+      if (cancelled === isCancelled) {
+        throw new ConflictError(
+          cancelled ? 'This receipt is already cancelled' : 'This receipt is not cancelled',
+          cancelled ? 'ALREADY_CANCELLED' : 'NOT_CANCELLED',
+        );
+      }
+      const updated = await tx.bookEntry.update({
+        where: { id: entryId },
+        data: cancelled
+          ? { cancelledAt: new Date(), cancelledBy: userId }
+          : { cancelledAt: null, cancelledBy: null },
+        select: {
+          id: true,
+          entryNumber: true,
+          head: true,
+          amount: true,
+          isCorrected: true,
+          correctedAt: true,
+          cancelledAt: true,
+          cancelledBy: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: cancelled ? 'ENTRY_CANCELLED' : 'ENTRY_RESTORED',
+          entity: 'BookEntry',
+          entityId: entryId,
+          oldValue: { cancelledAt: entry.cancelledAt },
+          newValue: { cancelledAt: updated.cancelledAt },
+          ipAddress: req?.ip ?? undefined,
+          userAgent: req?.headers?.['user-agent'] ?? undefined,
+        },
+      });
+
+      return updated;
+    }
+
+    // Correction branch.
     const oldValue = { head: entry.head, amount: entry.amount };
     const updated = await tx.bookEntry.update({
       where: { id: entryId },
@@ -201,6 +255,8 @@ export async function updateEntry({ bookId, entryId, head, amount, userId, req }
         amount: true,
         isCorrected: true,
         correctedAt: true,
+        cancelledAt: true,
+        cancelledBy: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -25,6 +25,9 @@ export default function SummaryTab({ bookId, book }) {
           <h2 className="text-base font-semibold text-slate-800">Head-wise summary</h2>
           <p className="text-xs text-slate-400">
             {book.code}/{book.bookNumber} · {entryCount} receipts recorded
+            {summary.data.cancelledEntries > 0
+              ? ` · ${summary.data.cancelledEntries} receipt${summary.data.cancelledEntries === 1 ? '' : 's'} cancelled`
+              : ''}
           </p>
         </div>
         <div className="table-wrap">

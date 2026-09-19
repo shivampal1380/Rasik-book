@@ -8,7 +8,7 @@ import { ErrorAlert, StatusBadge } from '../../components/ui/Feedback.jsx';
 
 export default function EntryTab({ book }) {
   const queryClient = useQueryClient();
-  const [head, setHead] = useState('BHETA');
+  const [head, setHead] = useState('');
   const [amount, setAmount] = useState('');
   const [err, setErr] = useState('');
   const amountRef = useRef(null);
@@ -31,6 +31,7 @@ export default function EntryTab({ book }) {
       queryClient.invalidateQueries({ queryKey: ['books'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setAmount('');
+      setHead('');
       setErr('');
       amountRef.current?.focus();
     },
@@ -43,6 +44,10 @@ export default function EntryTab({ book }) {
 
   const submit = e => {
     e.preventDefault();
+    if (!head) {
+      setErr('Select a head first.');
+      return;
+    }
     const amt = parseInt(amount, 10);
     if (!amt || amt <= 0) {
       setErr('Enter a valid amount in whole rupees.');
@@ -148,10 +153,19 @@ export default function EntryTab({ book }) {
                 </thead>
                 <tbody>
                   {entries.items.map(e => (
-                    <tr key={e.id} className="border-b border-slate-50">
-                      <td className="py-2 font-semibold text-slate-700">{e.entryNumber}</td>
+                    <tr key={e.id} className={`border-b border-slate-50 ${e.cancelledAt ? 'opacity-60' : ''}`}>
+                      <td className="py-2 font-semibold text-slate-700">
+                        {e.entryNumber}
+                        {e.cancelledAt && (
+                          <span className="ml-1.5 rounded bg-red-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-red-700">
+                            cancelled
+                          </span>
+                        )}
+                      </td>
                       <td className="py-2 text-slate-600">{entryHeadLabel(e)}</td>
-                      <td className="py-2 text-right font-semibold text-slate-800">{formatINR(e.amount)}</td>
+                      <td className={`py-2 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                        {formatINR(e.amount)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

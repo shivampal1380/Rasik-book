@@ -25,7 +25,7 @@ export async function compareBooks({ bookIds, ranges = [] }) {
       const rangeFrom = range.from ?? null;
       const rangeTo = range.to ?? null;
 
-      const where = { bookId: book.id };
+      const where = { bookId: book.id, cancelledAt: null };
       if (rangeFrom != null || rangeTo != null) {
         where.entryNumber = {};
         if (rangeFrom != null) where.entryNumber.gte = rangeFrom;
@@ -122,6 +122,7 @@ export async function searchEntries({ query }) {
   }
 
   const where = conditions.length ? { AND: conditions } : {};
+  const totalsWhere = { AND: [...conditions, { cancelledAt: null }] };
 
   // Sorting — bookNumber needs a relation sort.
   let orderBy;
@@ -143,6 +144,10 @@ export async function searchEntries({ query }) {
         entryNumber: true,
         head: true,
         amount: true,
+        isCorrected: true,
+        correctedAt: true,
+        cancelledAt: true,
+        cancelledBy: true,
         createdAt: true,
         book: { select: { id: true, code: true, bookNumber: true } },
       },
@@ -151,11 +156,11 @@ export async function searchEntries({ query }) {
 
   const byHeadRaw = await prisma.bookEntry.groupBy({
     by: ['head'],
-    where,
+    where: totalsWhere,
     _sum: { amount: true },
     _count: { _all: true },
   });
-  const grand = await prisma.bookEntry.aggregate({ where, _sum: { amount: true } });
+  const grand = await prisma.bookEntry.aggregate({ where: totalsWhere, _sum: { amount: true } });
 
   const visible = await getVisibleHeadSet();
 

@@ -13,13 +13,14 @@ export const BOOK_SELECT = {
   maxEntries: true,
   pracharak: true,
   area: true,
+  isUpi: true,
   createdBy: true,
   createdAt: true,
   updatedAt: true,
   completedAt: true,
 };
 
-export async function createBook({ code, bookNumber, pracharak = null, area = null, createdBy, req }) {
+export async function createBook({ code, bookNumber, pracharak = null, area = null, isUpi = false, createdBy, req }) {
   try {
     const book = await prisma.book.create({
       data: {
@@ -27,6 +28,7 @@ export async function createBook({ code, bookNumber, pracharak = null, area = nu
         bookNumber,
         pracharak: pracharak || null,
         area: area || 'MAHAKALI',
+        isUpi: isUpi || false,
         createdBy,
       },
       select: BOOK_SELECT,
@@ -90,18 +92,24 @@ async function enrichWithTotals(books) {
   if (books.length === 0) return [];
   const ids = books.map(b => b.id);
 
-  const groups = await prisma.bookEntry.groupBy({
-    by: ['bookId'],
-    where: { bookId: { in: ids } },
-    _sum: { amount: true },
-    _count: { _all: true },
-  });
-  const map = new Map(groups.map(g => [g.bookId, g]));
+  const [totals, counts] = await Promise.all([
+    prisma.bookEntry.groupBy({
+      by: ['bookId'],
+      where: { bookId: { in: ids }, cancelledAt: null },
+      _sum: { amount: true },
+    }),
+    prisma.bookEntry.groupBy({
+      by: ['bookId'],
+      where: { bookId: { in: ids } },
+      _count: { _all: true },
+    }),
+  ]);
+  const sumMap = new Map(totals.map(g => [g.bookId, g._sum.amount ?? 0]));
+  const countMap = new Map(counts.map(g => [g.bookId, g._count._all]));
 
   return books.map(book => {
-    const group = map.get(book.id);
-    const entriesCompleted = group?._count._all ?? 0;
-    const amount = group?._sum.amount ?? 0;
+    const entriesCompleted = countMap.get(book.id) ?? 0;
+    const amount = sumMap.get(book.id) ?? 0;
     return {
       ...book,
       entriesCompleted,
@@ -125,11 +133,13 @@ export async function getBookById(id, { includeCreatedBy = false } = {}) {
   if (!book) throw new NotFoundError('Book not found', 'BOOK_NOT_FOUND');
 
   let computed = { entriesCompleted: 0, totalAmount: 0 };
-  const agg = await prisma.bookEntry.aggregate({
-    where: { bookId: book.id },
-    _sum: { amount: true },
-  });
-  const count = await prisma.bookEntry.count({ where: { bookId: book.id } });
+  const [agg, count] = await Promise.all([
+    prisma.bookEntry.aggregate({
+      where: { bookId: book.id, cancelledAt: null },
+      _sum: { amount: true },
+    }),
+    prisma.bookEntry.count({ where: { bookId: book.id } }),
+  ]);
   computed = {
     entriesCompleted: count,
     entriesRemaining: Math.max(0, book.maxEntries - count),
@@ -179,13 +189,15 @@ export async function getBookTotals(bookId) {
 
   const entries = await prisma.bookEntry.findMany({
     where: { bookId },
-    select: { head: true, amount: true },
+    select: { head: true, amount: true, cancelledAt: true },
   });
+
+  const active = entries.filter(e => !e.cancelledAt);
 
   const byHead = {};
   for (const h of HEAD_DISPLAY_ORDER) byHead[h] = 0;
   let grand = 0;
-  for (const e of entries) {
+  for (const e of active) {
     byHead[e.head] = (byHead[e.head] || 0) + e.amount;
     grand += e.amount;
   }
@@ -198,6 +210,7 @@ export async function getBookTotals(bookId) {
     bookId,
     grandTotal: grand,
     totalEntries: entries.length,
+    cancelledEntries: entries.length - active.length,
     remainingEntries: Math.max(0, book.maxEntries - entries.length),
     maxEntries: book.maxEntries,
     byHead: HEAD_DISPLAY_ORDER.filter(h => visible.has(h)).map(h => ({

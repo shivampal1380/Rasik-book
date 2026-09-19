@@ -25,15 +25,17 @@ export async function generateStatement(bookId) {
   if (!book) throw new NotFoundError('Book not found', 'BOOK_NOT_FOUND');
 
   const entries = await prisma.bookEntry.findMany({
-    where: { bookId },
+    where: { bookId }, // cancelled receipts print with "Cancel" written across the row
     orderBy: { entryNumber: 'asc' },
     select: {
       entryNumber: true,
       head: true,
       amount: true,
+      cancelledAt: true,
       createdAt: true,
     },
   });
+  const cancelledCount = entries.filter(e => e.cancelledAt).length;
 
   // Statement layout from configuration: columns 1-5 are the primary heads,
   // column 6 hosts sub-heads (names), column 7 is the Amount column.
@@ -42,6 +44,6 @@ export async function generateStatement(bookId) {
   const html = renderStatementHTML({ ...book, entries, columns });
   const pdf = await renderPDF(html);
 
-  logger.info({ bookId, entries: entries.length }, 'Statement PDF generated');
-  return pdf;
+  logger.info({ bookId, entries: entries.length, cancelledCount }, 'Statement PDF generated');
+  return { buffer: pdf, code: book.code, bookNumber: book.bookNumber };
 }

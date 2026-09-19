@@ -14,19 +14,29 @@ export const getBookAudit = asyncHandler(async (req, res) => {
 });
 
 export const generatePdf = asyncHandler(async (req, res) => {
-  const pdf = await generateStatement(req.params.id);
+  const { buffer, code, bookNumber } = await generateStatement(req.params.id);
   await writeAudit({
     userId: req.user.sub,
     action: 'PDF_GENERATED',
     entity: 'Book',
     entityId: req.params.id,
-    newValue: { size: pdf.length, generatedAt: new Date().toISOString() },
+    newValue: { size: buffer.length, generatedAt: new Date().toISOString() },
     req,
   });
   res.setHeader('Content-Type', 'application/pdf');
   const inline = req.query.preview === '1';
-  res.setHeader('Content-Disposition', inline ? 'inline' : `attachment; filename="statement-${req.params.id.slice(0, 8)}.pdf"`);
+  const filename = `Statement-${safe(code)}-${safe(bookNumber)}_${stamp()}.pdf`;
+  res.setHeader('Content-Disposition', inline ? 'inline' : `attachment; filename="${filename}"`);
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
-  res.send(Buffer.from(pdf));
+  res.send(Buffer.from(buffer));
 });
+
+const safe = part => String(part).replace(/[^\w.-]/g, '_');
+
+// Timestamp in DDMMYYYYHHMMSS (local time).
+function stamp() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}${p(d.getMonth() + 1)}${d.getFullYear()}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}

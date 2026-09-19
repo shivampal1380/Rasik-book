@@ -70,6 +70,7 @@ export function renderStatementHTML(book) {
   .hl { font-weight:bold; text-align:center; background:#f0f0f0; font-size:6.3pt; padding:1px 0; line-height:1.3; }
   .cl { text-align:center; font-size:6.3pt; padding:0; line-height:1.3; }
   .clnum { text-align:right; font-size:6.2pt; padding:0 2px; line-height:1.3; white-space:nowrap; }
+  .cancel { text-align:center; font-size:4.8pt; font-style:italic; padding:0; line-height:1.2; white-space:nowrap; }
   .subhead { text-align:center; font-size:5.6pt; padding:0; line-height:1.2; }
   .subrow td { font-weight:bold; background:#f4f4f4; }
 
@@ -92,9 +93,9 @@ ${metaCells(book)}
 <table class="blocks">
   <tbody>
     <tr>
-      <td>${blockTable(columns, leftRows, 'T. C/F', leftByHead, 'left')}</td>
+      <td>${blockTable(columns, entriesByNo, LEFT_FIRST, LEFT_LAST, 'T. C/F', leftByHead, 'left')}</td>
       <td class="gap"></td>
-      <td>${blockTable(columns, rightRows, 'G.T.', grandByHead, 'right', leftByHead)}</td>
+      <td>${blockTable(columns, entriesByNo, RIGHT_FIRST, RIGHT_LAST, 'G.T.', grandByHead, 'right', leftByHead)}</td>
     </tr>
   </tbody>
 </table>
@@ -109,8 +110,9 @@ ${footerCells(book)}
 // ---------------------------------------------------------------------------
 // One side of the receipt grid: header, data rows, optional carry-over row
 // (right block's "T. B/F" holds the left block's totals) and the bottom total
-// row.
-function blockTable(columns, rows, totalLabel, byHead, side, carryByHead) {
+// row. Every receipt number in the range is printed; amounts fill in only
+// where a receipt exists.
+function blockTable(columns, entriesByNo, first, last, totalLabel, byHead, side, carryByHead) {
   const headCells =
     `<th class="no hl">R.No.</th>` +
     columns.map(c => `<th class="hl">${esc(c.label)}</th>`).join('');
@@ -119,8 +121,9 @@ function blockTable(columns, rows, totalLabel, byHead, side, carryByHead) {
   if (side === 'right') {
     body.push(`<tr class="subrow"><td class="cl">T. B/F</td>${totalsCells(columns, carryByHead)}</tr>`);
   }
-  for (const r of rows) {
-    body.push(`<tr><td class="cl">${r ? r.entryNumber : ''}</td>${dataCells(columns, r)}</tr>`);
+  for (let n = first; n <= last; n++) {
+    const r = entriesByNo.get(n) || null;
+    body.push(`<tr><td class="cl">${n}</td>${dataCells(columns, r)}</tr>`);
   }
   body.push(`<tr class="subrow"><td class="cl" style="text-align:left;">${totalLabel}</td>${totalsCells(columns, byHead)}</tr>`);
 
@@ -136,6 +139,7 @@ function blockTable(columns, rows, totalLabel, byHead, side, carryByHead) {
 // and their amount in column 7; the parent head prints its amount in column 6.
 function dataCells(columns, entry) {
   if (!entry) return emptyCells(columns);
+  if (entry.cancelledAt) return cancelledCells(columns);
   return columns.map(c => {
     if (c.type === 'head') {
       return `<td class="clnum">${entry.head === c.key ? num(entry.amount) : ''}</td>`;
@@ -150,6 +154,11 @@ function dataCells(columns, entry) {
     // amount column — sub-head amounts land here
     return `<td class="clnum">${c.subMap.has(entry.head) ? num(entry.amount) : ''}</td>`;
   }).join('');
+}
+
+// A cancelled receipt: every cell of its row is stamped "Cancel".
+function cancelledCells(columns) {
+  return columns.map((_, i) => (i === 0 ? `<td class="clnum cancel">Cancel</td>` : `<td class="cancel">Cancel</td>`)).join('');
 }
 
 function emptyCells(columns) {
@@ -172,7 +181,7 @@ function totalsCells(columns, byHead) {
 function buildByHead(entries) {
   const map = { _sum: 0 };
   for (const e of entries) {
-    if (!e) continue;
+    if (!e || e.cancelledAt) continue;
     map[e.head] = (map[e.head] || 0) + e.amount;
     map._sum += e.amount;
   }

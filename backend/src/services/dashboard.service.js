@@ -24,13 +24,13 @@ export async function getDashboardStats() {
     prisma.book.count({ where: { status: 'CANCELLED' } }),
     prisma.book.count(),
     prisma.bookEntry.aggregate({
-      where: { createdAt: { gte: startOfDay } },
+      where: { createdAt: { gte: startOfDay }, cancelledAt: null },
       _sum: { amount: true },
     }),
     prisma.bookEntry.count({ where: { createdAt: { gte: startOfDay } } }),
     prisma.bookEntry.groupBy({
       by: ['head'],
-      where: { createdAt: { gte: startOfDay } },
+      where: { createdAt: { gte: startOfDay }, cancelledAt: null },
       _sum: { amount: true },
     }),
     prisma.book.findMany({

@@ -29,7 +29,7 @@ router.use(requireRole(...ALLOWED));
 
 // Apt: books
 router.get('/', validate(listBooksQuerySchema, 'query'), listBooks);
-router.post('/', validate(createBookSchema), createBook);
+router.post('/', requireAdmin, validate(createBookSchema), createBook);
 
 // Book-scoped routes
 router.get('/:id/summary', validate(bookParamSchema, 'params'), getBookSummary);

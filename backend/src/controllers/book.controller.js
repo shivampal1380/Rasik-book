@@ -3,12 +3,13 @@ import * as bookService from '../services/book.service.js';
 import { writeAudit } from '../middleware/audit.js';
 
 export const createBook = asyncHandler(async (req, res) => {
-  const { code, bookNumber, pracharak, area } = req.body;
+  const { code, bookNumber, pracharak, area, isUpi } = req.body;
   const result = await bookService.createBook({
     code,
     bookNumber,
     pracharak,
     area,
+    isUpi,
     createdBy: req.user.sub,
     req,
   });
@@ -17,7 +18,7 @@ export const createBook = asyncHandler(async (req, res) => {
     action: 'BOOK_CREATED',
     entity: 'Book',
     entityId: result.book.id,
-    newValue: { code, bookNumber },
+    newValue: { code, bookNumber, isUpi },
     req,
   });
   return ok(res, { ...result }, 201);

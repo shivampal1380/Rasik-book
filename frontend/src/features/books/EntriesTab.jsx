@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchEntries } from './booksApi.js';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { fetchEntries, updateEntry } from './booksApi.js';
 import { HEADS, headLabel, entryHeadLabel, formatINR, getErrorMessage } from '../../lib/api.js';
 import { useVisibleHeads } from '../config/useVisibleHeads.js';
 import { PageLoader } from '../../components/ui/Spinner.jsx';
@@ -11,10 +11,23 @@ import EditEntryModal from './EditEntryModal.jsx';
 
 export default function EntriesTab({ bookId }) {
   const { isAdmin } = useUser();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [head, setHead] = useState('');
   const [editing, setEditing] = useState(null);
   const { visibleKeySet } = useVisibleHeads();
+
+  const toggleCancel = useMutation({
+    mutationFn: ({ entryId, cancelled }) => updateEntry(bookId, entryId, { cancelled }),
+    onSuccess: () => {
+      ['book-entries', 'book', 'summary', 'books', 'dashboard'].forEach(key =>
+        queryClient.invalidateQueries({ queryKey: [key, bookId] }),
+      );
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+    onError: e => window.alert(getErrorMessage(e)),
+  });
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['book-entries', bookId, { page, head }],
@@ -82,16 +95,36 @@ export default function EntriesTab({ bookId }) {
                 </tr>
               )}
               {items.map(e => (
-                <tr key={e.id} className="border-t border-slate-100 hover:bg-slate-50/50">
-                  <td className="px-4 py-2.5 font-semibold text-slate-700">{e.entryNumber}</td>
+                <tr key={e.id} className={`border-t border-slate-100 hover:bg-slate-50/50 ${e.cancelledAt ? 'opacity-60' : ''}`}>
+                  <td className="px-4 py-2.5 font-semibold text-slate-700">
+                    {e.entryNumber}
+                    {e.cancelledAt && (
+                      <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-red-700">
+                        cancelled
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-2.5 text-slate-600">{entryHeadLabel(e)}</td>
-                  <td className="px-4 py-2.5 text-right font-semibold text-slate-800">{formatINR(e.amount)}</td>
-                  <td className="px-4 py-2.5 text-right text-slate-500">{formatINR(data.runningTotals?.[e.entryNumber] ?? '—')}</td>
+                  <td className={`px-4 py-2.5 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                    {formatINR(e.amount)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-slate-500">
+                    {e.cancelledAt ? '—' : formatINR(data.runningTotals?.[e.entryNumber] ?? '—')}
+                  </td>
                   <td className="px-4 py-2.5 text-right text-xs text-slate-400">
                     {new Date(e.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                   </td>
                   <td className="px-4 py-2.5">
-                    {e.isCorrected ? (
+                    {e.cancelledAt ? (
+                      <div className="text-xs">
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
+                          Cancelled
+                        </span>
+                        <div className="mt-1 text-[11px] text-slate-400">
+                          {new Date(e.cancelledAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                        </div>
+                      </div>
+                    ) : e.isCorrected ? (
                       <div className="text-xs">
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
                           Corrected
@@ -106,9 +139,39 @@ export default function EntriesTab({ bookId }) {
                   </td>
                   {isAdmin && (
                     <td className="px-4 py-2.5 text-right">
-                      <button onClick={() => setEditing(e)} className="text-xs font-semibold text-brand-700 hover:text-brand-900">
-                        Edit
-                      </button>
+                      {e.cancelledAt ? (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Restore receipt #${e.entryNumber}? Its amount will count again.`)) {
+                              toggleCancel.mutate({ entryId: e.id, cancelled: false });
+                            }
+                          }}
+                          disabled={toggleCancel.isPending}
+                          className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+                        >
+                          Restore
+                        </button>
+                      ) : (
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => setEditing(e)}
+                            className="text-xs font-semibold text-brand-700 hover:text-brand-900"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Cancel receipt #${e.entryNumber}? Its amount will be removed from all totals.`)) {
+                                toggleCancel.mutate({ entryId: e.id, cancelled: true });
+                              }
+                            }}
+                            disabled={toggleCancel.isPending}
+                            className="text-xs font-semibold text-red-600 hover:text-red-800"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </td>
                   )}
                 </tr>

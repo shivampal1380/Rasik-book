@@ -12,6 +12,7 @@ const schema = z.object({
   code: z.string().trim().min(1, 'Code is required').max(8, 'Max 8 characters'),
   bookNumber: z.string().trim().min(1, 'Book number is required'),
   pracharak: z.string().trim().max(100).optional(),
+  isUpi: z.boolean().optional(),
 });
 
 export default function CreateBookModal({ open, onClose }) {
@@ -24,7 +25,7 @@ export default function CreateBookModal({ open, onClose }) {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { code: 'A01', bookNumber: '', pracharak: '' },
+    defaultValues: { code: 'A01', bookNumber: '', pracharak: '', isUpi: false },
   });
 
   const mutation = useMutation({
@@ -63,6 +64,18 @@ export default function CreateBookModal({ open, onClose }) {
           <label className="label">Pracharak (full name)</label>
           <input className="input" placeholder="Enter pracharak name" {...register('pracharak')} />
         </div>
+
+        <label className="flex cursor-pointer items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-700 accent-brand-700"
+            {...register('isUpi')}
+          />
+          <span>
+            <span className="block text-sm font-medium text-slate-700">UPI book</span>
+            <span className="block text-xs text-slate-500">This book collects payments via UPI</span>
+          </span>
+        </label>
 
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
           Area is set to <span className="font-semibold">MAHAKALI</span>. Books are created with 100 receipt numbers.

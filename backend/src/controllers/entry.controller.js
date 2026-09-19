@@ -19,12 +19,13 @@ export const listEntries = asyncHandler(async (req, res) => {
 });
 
 export const updateEntry = asyncHandler(async (req, res) => {
-  const { head, amount } = req.body;
+  const { head, amount, cancelled } = req.body;
   const updated = await entryService.updateEntry({
     bookId: req.params.id,
     entryId: req.params.entryId,
     head,
     amount,
+    cancelled,
     userId: req.user.sub,
     req,
   });
