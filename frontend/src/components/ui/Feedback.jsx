@@ -16,8 +16,8 @@ export function StatusBadge({ status }) {
 
 export function UpiBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 px-3 py-1 text-xs font-extrabold uppercase tracking-wide text-yellow-950 shadow-[0_1px_4px_rgba(250,204,21,0.45)] ring-1 ring-inset ring-yellow-500/40">
-      <Zap size={12} strokeWidth={3} className="text-yellow-800" fill="currentColor" />
+    <span className="inline-flex items-center gap-0.5 rounded-full bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-yellow-950 ring-1 ring-inset ring-yellow-500/40">
+      <Zap size={9} strokeWidth={3} className="text-yellow-800" fill="currentColor" />
       UPI
     </span>
   );

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { ChevronDown } from 'lucide-react';
 import { compareBooks } from './compareApi.js';
 import { fetchBooks } from '../books/booksApi.js';
 import { formatINR, getErrorMessage } from '../../lib/api.js';
 import { PageLoader } from '../../components/ui/Spinner.jsx';
-import { ErrorAlert, EmptyState } from '../../components/ui/Feedback.jsx';
+import { UpiBadge, ErrorAlert, EmptyState } from '../../components/ui/Feedback.jsx';
 
 const SLOTS = [
   { key: 'b1', label: 'Book 1', required: true },
@@ -95,26 +96,23 @@ export default function ComparePage() {
             const taken = activeIds.filter(id => id !== selected[slot.key]);
             const disabled = !selected[slot.key];
             const bad = !disabled && toReceiptNo(slot.range.from) > toReceiptNo(slot.range.to);
+            const chosen = books.find(b => b.id === selected[slot.key]);
             return (
               <div key={slot.key} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                <span className="label">
-                  {slot.label}
-                  {!slot.required && <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">optional</span>}
+                <span className="flex items-center justify-between gap-1">
+                  <span className="label">
+                    {slot.label}
+                    {!slot.required && <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">optional</span>}
+                  </span>
+                  {chosen?.isUpi && <UpiBadge />}
                 </span>
-                <select
+                <BookPicker
                   value={selected[slot.key]}
-                  onChange={e => pick(slot.key, e.target.value)}
-                  className="input"
-                >
-                  <option value="">{slot.required ? 'Select a book…' : '—'}</option>
-                  {books
-                    .filter(b => !taken.includes(b.id))
-                    .map(b => (
-                      <option key={b.id} value={b.id}>
-                        {b.code}/{b.bookNumber} · {b.status}
-                      </option>
-                    ))}
-                </select>
+                  selected={chosen}
+                  options={books.filter(b => !taken.includes(b.id))}
+                  placeholder={slot.required ? 'Select a book…' : '—'}
+                  onPick={id => pick(slot.key, id)}
+                />
 
                 <div className="mt-3">
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Receipt no. range</span>
@@ -185,7 +183,10 @@ export default function ComparePage() {
                   <th className="px-4 py-3 text-left">Head</th>
                   {data.books.map(b => (
                     <th key={b.id} className="px-4 py-3 text-right">
-                      {b.code}/{b.bookNumber}
+                      <span className="inline-flex items-center gap-1.5">
+                        {b.code}/{b.bookNumber}
+                        {b.isUpi && <UpiBadge />}
+                      </span>
                       <span className="ml-1 block text-[10px] font-medium normal-case text-slate-400 dark:text-slate-500">
                         {rangeLabel(b)}
                       </span>
@@ -248,6 +249,79 @@ export default function ComparePage() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BookPicker({ value, selected, options, placeholder, onPick }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = e => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="input flex w-full items-center justify-between gap-2 text-left"
+      >
+        <span className={`truncate ${value ? 'text-slate-800 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'}`}>
+          {value ? `${selected?.code}/${selected?.bookNumber}` : placeholder}
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          {selected?.isUpi && <UpiBadge />}
+          <ChevronDown size={16} className={`text-slate-400 transition-transform dark:text-slate-500 ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              onPick('');
+              setOpen(false);
+            }}
+            className="block w-full px-3 py-2 text-left text-sm text-slate-400 hover:bg-slate-50 dark:text-slate-500 dark:hover:bg-slate-700/50"
+          >
+            {placeholder}
+          </button>
+          {options.map(b => {
+            const isCurrent = b.id === value;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                role="option"
+                aria-selected={isCurrent}
+                onClick={() => {
+                  onPick(b.id);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
+                  isCurrent ? 'bg-brand-50 font-semibold text-brand-800 dark:bg-brand-500/10 dark:text-brand-200' : 'text-slate-700 dark:text-slate-300'
+                }`}
+              >
+                <span className="truncate">
+                  {b.code}/{b.bookNumber}
+                  <span className="ml-2 text-xs font-medium text-slate-400 dark:text-slate-500">{b.status}</span>
+                </span>
+                {b.isUpi && <UpiBadge />}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
