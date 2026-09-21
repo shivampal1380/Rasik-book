@@ -132,6 +132,8 @@ export const updatePdfConfigSchema = z.object({
     .max(7, 'At most 7 main heads are required')
     .refine(arr => new Set(arr).size === arr.length, 'Main heads must not repeat'),
   subHeadMode: z.boolean().optional(),
+  summaryRow7: z.enum(HEAD_VALUES).nullable().optional(),
+  summaryRow8: z.enum(HEAD_VALUES).nullable().optional(),
 });
 
 // --- Audit ---

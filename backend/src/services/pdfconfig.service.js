@@ -11,6 +11,8 @@ export async function getStoredConfig() {
     row ?? {
       mainHeads: ['BHETA', 'B_FUND', 'SBF', 'LANGAR', 'PCS', 'MED', 'SS'],
       subHeadMode: true,
+      summaryRow7: null,
+      summaryRow8: null,
     }
   );
 }
@@ -39,12 +41,14 @@ export async function getPdfConfig() {
   return {
     mainHeads,
     subHeadMode: stored.subHeadMode,
+    summaryRow7: stored.summaryRow7 ?? null,
+    summaryRow8: stored.summaryRow8 ?? null,
     subHeads,
     heads: HEADS.map(h => ({ head: h.value, label: h.label, visible: visMap[h.value] ?? true })),
   };
 }
 
-export async function updatePdfConfig({ mainHeads, subHeadMode }) {
+export async function updatePdfConfig({ mainHeads, subHeadMode, summaryRow7, summaryRow8 }) {
   if (!Array.isArray(mainHeads) || mainHeads.length < 6 || mainHeads.length > 7) {
     throw new ValidationError('6 or 7 main heads are required (columns 1–5, columns 6–7)');
   }
@@ -58,6 +62,12 @@ export async function updatePdfConfig({ mainHeads, subHeadMode }) {
       throw new ValidationError(`Cannot use a hidden head (${HEAD_LABEL_MAP[h] || h}) as a main column`);
     }
   }
+  for (const r of ['summaryRow7', 'summaryRow8']) {
+    const h = r === 'summaryRow7' ? summaryRow7 : summaryRow8;
+    if (h != null && !visible.has(h)) {
+      throw new ValidationError(`Cannot use a hidden head (${HEAD_LABEL_MAP[h] || h}) as a summary row`);
+    }
+  }
 
   const current = await getStoredConfig();
   const effectiveMode = typeof subHeadMode === 'boolean' ? subHeadMode : current.subHeadMode;
@@ -67,6 +77,10 @@ export async function updatePdfConfig({ mainHeads, subHeadMode }) {
     // can't linger as a hidden phantom blocking edits.
     mainHeads: effectiveMode ? mainHeads.slice(0, 6) : mainHeads,
     subHeadMode: effectiveMode,
+    summaryRow7:
+      summaryRow7 === undefined ? (current.summaryRow7 ?? null) : (summaryRow7 || null),
+    summaryRow8:
+      summaryRow8 === undefined ? (current.summaryRow8 ?? null) : (summaryRow8 || null),
   };
 
   await prisma.pdfConfig.upsert({
@@ -138,5 +152,7 @@ export async function derivePdfColumns() {
       ? HEADS.map(h => h.value).filter(v => visibleSet.has(v) && !new Set(mains.slice(0, 6)).has(v))
       : [],
     mode: stored.subHeadMode ? 'sub' : 'main',
+    summaryRow7: stored.summaryRow7 ?? null,
+    summaryRow8: stored.summaryRow8 ?? null,
   };
 }

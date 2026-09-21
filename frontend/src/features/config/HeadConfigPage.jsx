@@ -119,14 +119,19 @@ function PdfLayoutSection() {
 
   const [selection, setSelection] = useState(null);
   const [subHeadOn, setSubHeadOn] = useState(null);
+  const [row7Val, setRow7Val] = useState(null);
+  const [row8Val, setRow8Val] = useState(null);
   const [err, setErr] = useState('');
 
   const mutation = useMutation({
-    mutationFn: ({ mainHeads, subHeadMode }) => updatePdfConfig(mainHeads, subHeadMode),
+    mutationFn: ({ mainHeads, subHeadMode, summaryRow7, summaryRow8 }) =>
+      updatePdfConfig(mainHeads, subHeadMode, summaryRow7, summaryRow8),
     onSuccess: data => {
       queryClient.setQueryData(['pdf-config'], data);
       if (data.mainHeads) setSelection([...data.mainHeads]);
       if (typeof data.subHeadMode === 'boolean') setSubHeadOn(data.subHeadMode);
+      setRow7Val(data.summaryRow7 ?? null);
+      setRow8Val(data.summaryRow8 ?? null);
       setErr('');
     },
     onError: e => setErr(getErrorMessage(e)),
@@ -176,9 +181,14 @@ function PdfLayoutSection() {
     const current = padded[index];
     return visibleHeads.filter(v => v.head === current || !padded.includes(v.head));
   };
+  const effectiveRow7 = row7Val ?? pdfCfg?.summaryRow7 ?? null;
+  const effectiveRow8 = row8Val ?? pdfCfg?.summaryRow8 ?? null;
+
   const dirty =
     JSON.stringify(chosen.slice(0, slotCount)) !== JSON.stringify(storedMains.slice(0, slotCount)) ||
-    subEffective !== storedSubMode;
+    subEffective !== storedSubMode ||
+    effectiveRow7 !== (pdfCfg?.summaryRow7 ?? null) ||
+    effectiveRow8 !== (pdfCfg?.summaryRow8 ?? null);
 
   const updateSlot = (index, head) => {
     const next = [...padded];
@@ -197,7 +207,12 @@ function PdfLayoutSection() {
       setErr('Assign 6 distinct heads at minimum — one per column.');
       return;
     }
-    mutation.mutate({ mainHeads: final, subHeadMode: !subEffective });
+    mutation.mutate({
+      mainHeads: final,
+      subHeadMode: !subEffective,
+      summaryRow7: effectiveRow7,
+      summaryRow8: effectiveRow8,
+    });
   };
 
   const save = () => {
@@ -206,7 +221,12 @@ function PdfLayoutSection() {
       setErr('Assign 6 distinct heads at minimum — one per column.');
       return;
     }
-    mutation.mutate({ mainHeads: final, subHeadMode: subEffective });
+    mutation.mutate({
+      mainHeads: final,
+      subHeadMode: subEffective,
+      summaryRow7: effectiveRow7,
+      summaryRow8: effectiveRow8,
+    });
   };
 
   return (
@@ -287,6 +307,31 @@ function PdfLayoutSection() {
             </select>
           </label>
         )}
+      </div>
+
+      <div className="mt-5 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Summary rows 7 &amp; 8
+        </div>
+        <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">
+          These two heads print in the fixed 9-row PDF summary (S U M M A R Y → BHETA → B.F. → S.B.F. → S.S + PCS → Langar + FF → rows 7 &amp; 8 → TOTAL Rs.). Pick a head or leave blank for an empty row.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Summary row 7', value: effectiveRow7, set: setRow7Val },
+            { label: 'Summary row 8', value: effectiveRow8, set: setRow8Val },
+          ].map(({ label, value, set }) => (
+            <label key={label} className="block">
+              <span className="label">{label}</span>
+              <select value={value ?? ''} onChange={e => set(e.target.value || null)} className="input">
+                <option value="">— None —</option>
+                {visibleHeads.map(v => (
+                  <option key={v.head} value={v.head}>{v.label}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">

@@ -8,7 +8,7 @@
 //                  visible heads print their NAME here
 //   column 7     → Amount: holds the amounts of those sub-heads
 
-import { STATEMENT_COLUMNS } from '../config/constants.js';
+import { HEAD_LABEL_MAP, STATEMENT_COLUMNS } from '../config/constants.js';
 
 const LEFT_FIRST = 1;
 const LEFT_LAST = 55;
@@ -33,8 +33,6 @@ export function renderStatementHTML(book) {
   const rightByHead = buildByHead(rightRows);
   const grandByHead = buildByHead(book.entries);
 
-  const summaryRows = buildSummary(columns);
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,16 +40,23 @@ export function renderStatementHTML(book) {
 <title>Statement of Receipts — ${book.code} / ${book.bookNumber}</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
+  :root { --no-col: 29px; }
   html, body { width:100%; }
   body { font-family: Arial, Helvetica, sans-serif; color:#000; }
-  @page { size: A4; margin: 10mm; }
+  @page { size: A4; margin: 2.5mm 10mm; }
 
   .top { width:100%; border-collapse:collapse; }
   .top td { border:none; height:11px; font-size:8pt; line-height:1.2; }
   .title { font-weight:bold; font-size:11pt; }
   .banner { font-weight:bold; font-size:12pt; }
+  .titles { margin-top:-75px; }
 
-  .meta-row { display:flex; align-items:flex-end; font-size:8pt; margin:4px 0 2px; line-height:1.2; }
+  .office { width:80%; border-collapse:collapse; border:1.5pt solid #000; margin-left:auto; margin-top:30px; }
+  .office td { border:1px solid #000; height:auto; padding:3px 8px; }
+  .office-title { font-weight:bold; font-size:10pt; text-align:center; white-space:nowrap; font-family:'Arial Black', Arial, sans-serif; }
+  .office td.office-line { text-align:left; font-size:9pt; white-space:nowrap; font-weight:bold; padding:8px 8px; }
+
+  .meta-row { display:flex; align-items:flex-end; font-size:8pt; margin:4px 0 8px; line-height:1.2; }
   .meta-row .m-label { font-weight:bold; white-space:nowrap; }
   .meta-row .m-value { flex:3 1 0; border-bottom:1px solid #000; min-width:2.5em; height:13px; }
   .meta-row .m-value-sm { flex:1 1 0; min-width:2em; }
@@ -63,27 +68,37 @@ export function renderStatementHTML(book) {
 
   .blocks { width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0; }
   .blocks > tbody > tr > td { border:none; vertical-align:top; }
-  .blocks td.gap { width:3mm; }
+  .blocks td.gap { width:0; }
 
   .grid { width:100%; table-layout:fixed; border-collapse:collapse; }
+  .grid-right td:first-child, .grid-right th:first-child { border-left:none; }
   .grid td, .grid th { border:1px solid #000; }
-  .hl { font-weight:bold; text-align:center; background:#f0f0f0; font-size:6.3pt; padding:1px 0; line-height:1.3; }
-  .cl { text-align:center; font-size:6.3pt; padding:0; line-height:1.3; }
-  .clnum { text-align:right; font-size:6.2pt; padding:0 2px; line-height:1.3; white-space:nowrap; }
-  .cancel { text-align:center; font-size:4.8pt; font-style:italic; padding:0; line-height:1.2; white-space:nowrap; }
-  .subhead { text-align:center; font-size:5.6pt; padding:0; line-height:1.2; }
+  .hl { font-weight:bold; text-align:center; background:#f0f0f0; font-size:6.3pt; padding:2px 0; line-height:1.3; }
+  .hl.no { width:var(--no-col); }
+  .cl { text-align:center; vertical-align:middle; font-size:7.3pt; padding:2px 0; line-height:7.5pt; }
+  .clnum { text-align:right; vertical-align:middle; font-size:7.2pt; padding:2px 2px; line-height:7.5pt; white-space:nowrap; }
+  .cancel { text-align:center; vertical-align:middle; font-size:4.8pt; font-style:italic; padding:2px 0; line-height:1.2; white-space:nowrap; }
+  .subhead { text-align:center; vertical-align:middle; font-size:7.2pt; padding:2px 0; line-height:7.5pt; }
+  .subrow td { font-weight:bold; background:#f4f4f4; }
   .subrow td { font-weight:bold; background:#f4f4f4; }
 
-  .summary { float:right; width:58%; margin-top:4px; border-collapse:collapse; }
-  .summary td { border:1px solid #000; font-size:7.5pt; }
+  .summary { width:calc(100% - 38px); margin-left:19px; margin-top:2px; table-layout:fixed; border-collapse:separate; border-spacing:0; }
+  .summary td { border:1px solid #000; border-top:none; border-left:none; font-size:7.5pt; padding-top:1.35px; padding-bottom:1.35px; }
+  .summary tr:first-child td { border-top:1px solid #000; }
+  .summary td:first-child { border-left:1px solid #000; }
+  .summary .s-title { font-weight:bold; text-align:center; font-size:9pt; letter-spacing:1.5px; padding:0 4px; }
+  .s-head td { background:#000; color:#fff; border-color:#fff; border-bottom-color:#000; }
+  .s-head td:first-child { border-top-left-radius:10px; }
+  .s-head td:last-child { border-top-right-radius:10px; }
   .s-label { font-weight:bold; padding:0 4px; }
   .s-sub { padding:0 4px 0 14px; font-size:7pt; }
   .s-val { text-align:right; padding:0 4px; font-size:7.5pt; }
-  .s-lbl { text-align:center; }
+  .s-lbl { text-align:center; font-weight:bold; }
+  .s-paise { text-align:left; padding:0 4px; }
   .clear { clear:both; }
 
   .foot { width:100%; margin-top:12px; border-collapse:collapse; }
-  .foot td { border:none; height:24px; font-size:8pt; line-height:1.2; }
+  .foot td { border:none; height:20px; font-size:8pt; line-height:1.2; }
 </style>
 </head>
 <body>
@@ -95,11 +110,12 @@ ${metaCells(book)}
     <tr>
       <td>${blockTable(columns, entriesByNo, LEFT_FIRST, LEFT_LAST, 'T. C/F', leftByHead, 'left')}</td>
       <td class="gap"></td>
-      <td>${blockTable(columns, entriesByNo, RIGHT_FIRST, RIGHT_LAST, 'G.T.', grandByHead, 'right', leftByHead)}</td>
+      <td>${blockTable(columns, entriesByNo, RIGHT_FIRST, RIGHT_LAST, 'G.T.', grandByHead, 'right', leftByHead)}
+${summaryBlock(grandByHead, book.summaryRow7, book.summaryRow8, columns.length + 1)}
+</td>
     </tr>
   </tbody>
 </table>
-${summaryBlock(columns, summaryRows, grandByHead)}
 <div class="clear"></div>
 ${footerCells(book)}
 
@@ -115,7 +131,7 @@ ${footerCells(book)}
 function blockTable(columns, entriesByNo, first, last, totalLabel, byHead, side, carryByHead) {
   const headCells =
     `<th class="no hl">R.No.</th>` +
-    columns.map(c => `<th class="hl">${esc(c.label)}</th>`).join('');
+    columns.map(c => `<th class="hl">${/Amount/i.test(c.label) ? '&nbsp;' : esc(c.label)}</th>`).join('');
 
   const body = [];
   if (side === 'right') {
@@ -125,10 +141,10 @@ function blockTable(columns, entriesByNo, first, last, totalLabel, byHead, side,
     const r = entriesByNo.get(n) || null;
     body.push(`<tr><td class="cl">${n}</td>${dataCells(columns, r)}</tr>`);
   }
-  body.push(`<tr class="subrow"><td class="cl" style="text-align:left;">${totalLabel}</td>${totalsCells(columns, byHead)}</tr>`);
+  body.push(`<tr class="subrow"><td class="cl" style="text-align:${side === 'right' ? 'center' : 'left'};">${totalLabel}</td>${totalsCells(columns, byHead)}</tr>`);
 
   return `
-<table class="grid">
+<table class="grid grid-${side}">
   <thead><tr>${headCells}</tr></thead>
   <tbody>${body.join('\n')}</tbody>
 </table>`;
@@ -188,48 +204,60 @@ function buildByHead(entries) {
   return map;
 }
 
-// Summary rows: primary heads, the column-6 parent head, then each sub-head
-// (indented), built from the configured columns.
-function buildSummary(columns) {
-  const rows = [];
-  for (const c of columns) {
-    if (c.type === 'head') rows.push({ label: c.label, key: c.key, sub: false });
-    else if (c.type === 'sub') {
-      if (c.parent) rows.push({ label: c.label, key: c.parent, sub: false });
-      for (const s of c.subRows) rows.push({ label: s.label, key: s.head, sub: true });
-    }
-  }
-  return rows;
-}
+// Fixed 9-row summary block (rows 7 and 8 are configurable heads; null prints
+// a blank row):
+//   row 1 → "S U M M A R Y | Rs. | P."
+//   rows 2-4 → BHETA, B.F., S.B.F.
+//   row 5   → S.S + PCS (combined)
+//   row 6   → Langar + FF (combined)
+//   rows 7-8 → configured heads (or blank)
+//   row 9   → TOTAL Rs.
+function summaryBlock(byHead, row7, row8, gridCols) {
+  const rows = [
+    { label: 'BHETA', key: 'BHETA' },
+    { label: 'B.F.', key: 'B_FUND' },
+    { label: 'S.B.F.', key: 'SBF' },
+    { label: 'S.S + PCS', keys: ['SS', 'PCS'] },
+    { label: 'Langar + FF', keys: ['LANGAR', 'FF'] },
+  ];
+  if (row7) rows.push({ label: HEAD_LABEL_MAP[row7] || row7, key: row7 });
+  if (row8) rows.push({ label: HEAD_LABEL_MAP[row8] || row8, key: row8 });
 
-function summaryBlock(columns, rows, byHead) {
-  const sum = rows.reduce((acc, r) => acc + (byHead[r.key] || 0), 0);
+  const labelSpan = Math.max(1, gridCols - 3);
+  const rsSpan = Math.max(1, Math.min(2, gridCols - labelSpan - 1));
+  const colgroup = `<col style="width:var(--no-col)">${'<col>'.repeat(Math.max(0, gridCols - 1))}`;
+
   const body = rows
     .map(r => {
-      const val = byHead[r.key] || 0;
+      const vals = (r.keys || [r.key]).map(k => (byHead[k] || 0));
+      const label = r.keys
+        ? `${r.label} (${vals.map(v => Number(v).toLocaleString('en-IN')).join(' + ')})`
+        : r.label;
+      const val = vals.reduce((a, b) => a + b, 0);
       return `
   <tr>
-    <td class="${r.sub ? 's-sub' : 's-label'}">${esc(r.label)}</td>
-    <td class="s-lbl">Rs.</td>
-    <td class="s-val">${num(val)}</td>
-    <td class="s-lbl">P.</td>
-    <td class="s-lbl">&nbsp;</td>
+    <td class="s-label" colspan="${labelSpan}">${esc(label)}</td>
+    <td class="s-val" colspan="${rsSpan}">${num(val)}</td>
+    <td class="s-paise">=00</td>
   </tr>`;
     })
     .join('');
 
+  const sum = rows.reduce((acc, r) => acc + (r.keys || [r.key]).reduce((a, k) => a + (byHead[k] || 0), 0), 0);
+
   return `
 <table class="summary">
-  <tr>
-    <td colspan="5" style="text-align:center; border:none; font-weight:bold; font-size:9pt;">S U M M A R Y</td>
+  <colgroup>${colgroup}</colgroup>
+  <tr class="s-head">
+    <td class="s-title" colspan="${labelSpan}">S U M M A R Y</td>
+    <td class="s-lbl" colspan="${rsSpan}">Rs.</td>
+    <td class="s-lbl">P.</td>
   </tr>
   ${body}
   <tr style="font-weight:bold;">
-    <td class="s-label">TOTAL Rs.</td>
-    <td class="s-lbl"></td>
-    <td class="s-val">${num(sum)}</td>
-    <td class="s-lbl"></td>
-    <td class="s-lbl"></td>
+    <td class="s-label" colspan="${labelSpan}">TOTAL Rs.</td>
+    <td class="s-val" colspan="${rsSpan}">${num(sum)}</td>
+    <td class="s-paise">=00</td>
   </tr>
 </table>`;
 }
@@ -240,29 +268,32 @@ function headerCells() {
   return `
 <table class="top">
   <tr>
-    <td style="width:22%;"></td>
-    <td class="title" style="width:46%; text-align:center;">APPENDIX -A(I)</td>
-    <td style="width:32%; text-align:right;">
-      <b>FOR OFFICE USE</b><br/>
-      No.: <span style="display:inline-block; border-bottom:1px solid #000; width:70px;">&nbsp;</span>&nbsp;&nbsp;Date: ${date}
+    <td style="width:27%;"></td>
+    <td class="title" style="width:46%; text-align:center; vertical-align:top; padding-top:22px; font-size:9.5pt;">APPENDIX -A(I)</td>
+    <td style="width:27%; text-align:right; vertical-align:top;">
+      <table class="office">
+        <tr><td class="office-title">FOR OFFICE USE</td></tr>
+        <tr><td class="office-line">No.:</td></tr>
+        <tr><td class="office-line">Date: ${date}</td></tr>
+      </table>
     </td>
   </tr>
 </table>
-<table class="top">
+<table class="top titles">
   <tr>
     <td style="width:22%;"></td>
-    <td class="banner" style="width:46%; text-align:center; font-size:16pt;">Sant Nirankari Mandal (Regd.)</td>
-    <td style="width:32%;"></td>
+    <td class="banner" style="width:56%; text-align:center; font-size:18pt; white-space:nowrap;">Sant Nirankari Mandal (Regd.)</td>
+    <td style="width:22%;"></td>
   </tr>
   <tr>
     <td style="width:22%;"></td>
-    <td style="width:46%; text-align:center; font-size:12pt;">(Mumbai Branch)</td>
-    <td style="width:32%;"></td>
+    <td style="width:56%; text-align:center; font-size:13pt; font-weight:bold; white-space:nowrap;">(Mumbai Branch)</td>
+    <td style="width:22%;"></td>
   </tr>
   <tr>
     <td style="width:22%;"></td>
-    <td class="banner" style="width:46%; text-align:center; font-size:13pt; text-decoration:underline; padding-bottom:8pt;">STATEMENT OF RECEIPTS</td>
-    <td style="width:32%;"></td>
+    <td class="banner" style="width:56%; text-align:center; font-size:12pt; white-space:nowrap; padding-bottom:10px; text-decoration:underline; font-family:'Arial Black', Arial, sans-serif;">STATEMENT OF RECEIPTS</td>
+    <td style="width:22%;"></td>
   </tr>
 </table>`;
 }
@@ -304,9 +335,9 @@ function footerCells() {
   return `
 <table class="foot">
   <tr>
-    <td style="width:45%; text-align:left;"><b>Checked by</b><br/><span style="display:inline-block; border-top:1px solid #000; width:180px;">&nbsp;</span></td>
-    <td style="width:20%; text-align:center;"><span style="display:inline-block; border-top:1px solid #000; width:130px;">&nbsp;</span></td>
-    <td style="width:35%; text-align:right;"><b>Signature of Mukhi</b><br/><span style="display:inline-block; border-top:1px solid #000; width:180px;">&nbsp;</span></td>
+    <td style="width:65%; text-align:left; padding-left:282pt;"><b>Checked by</b></td>
+    <td style="width:5%; text-align:center;"></td>
+    <td style="width:30%; text-align:right;"><b>Signature of Mukhi</b></td>
   </tr>
 </table>`;
 }

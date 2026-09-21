@@ -121,10 +121,14 @@ model HeadVisibility {
 //   sub-head (name in the cell) under mainHeads[5] as title, and column 7
 //   holds the sub-heads' Amount. When OFF, columns 6 and 7 just print as
 //   two more normal main head columns.
+//   summaryRow7 / summaryRow8 → the two configurable head rows (7 and 8) of
+//   the fixed 9-row summary block; null prints a blank row.
 model PdfConfig {
   id          String  @id @default(uuid())
   mainHeads   Head[]
   subHeadMode Boolean @default(true)
+  summaryRow7 Head?
+  summaryRow8 Head?
   updatedAt   DateTime @updatedAt
 
   @@map("pdf_config")

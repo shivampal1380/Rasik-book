@@ -39,9 +39,9 @@ export async function generateStatement(bookId) {
 
   // Statement layout from configuration: columns 1-5 are the primary heads,
   // column 6 hosts sub-heads (names), column 7 is the Amount column.
-  const { columns } = await derivePdfColumns();
+  const { columns, summaryRow7, summaryRow8 } = await derivePdfColumns();
 
-  const html = renderStatementHTML({ ...book, entries, columns });
+  const html = renderStatementHTML({ ...book, entries, columns, summaryRow7, summaryRow8 });
   const pdf = await renderPDF(html);
 
   logger.info({ bookId, entries: entries.length, cancelledCount }, 'Statement PDF generated');
