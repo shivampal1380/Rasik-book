@@ -91,11 +91,11 @@ export function renderStatementHTML(book) {
   .s-head td { background:#000; color:#fff; border-color:#fff; border-bottom-color:#000; }
   .s-head td:first-child { border-top-left-radius:10px; }
   .s-head td:last-child { border-top-right-radius:10px; }
-  .s-label { font-weight:bold; padding:0 4px 0 10px; }
-  .s-sub { padding:0 4px 0 14px; font-size:7pt; }
-  .s-val { text-align:right; padding:0 4px; font-size:7.5pt; }
-  .s-lbl { text-align:center; font-weight:bold; }
-  .s-paise { text-align:left; padding:0 4px; }
+  .summary .s-label { font-weight:bold; padding:0 4px 0 16px; }
+  .summary .s-sub { padding:0 4px 0 14px; font-size:7pt; }
+  .summary .s-val { text-align:right; padding:0 4px; font-size:7.5pt; }
+  .summary .s-lbl { text-align:center; font-weight:bold; }
+  .summary .s-paise { text-align:left; padding:0 4px; }
   .clear { clear:both; }
 
   .foot { width:100%; margin-top:12px; border-collapse:collapse; }
