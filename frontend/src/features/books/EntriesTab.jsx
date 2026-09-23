@@ -8,6 +8,7 @@ import { ErrorAlert } from '../../components/ui/Feedback.jsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUser } from '../auth/UserContext.js';
 import EditEntryModal from './EditEntryModal.jsx';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 
 export default function EntriesTab({ bookId }) {
   const { isAdmin } = useUser();
@@ -15,6 +16,7 @@ export default function EntriesTab({ bookId }) {
   const [page, setPage] = useState(1);
   const [head, setHead] = useState('');
   const [editing, setEditing] = useState(null);
+  const [confirm, setConfirm] = useState(null);
   const { visibleKeySet } = useVisibleHeads();
 
   const toggleCancel = useMutation({
@@ -141,11 +143,7 @@ export default function EntriesTab({ bookId }) {
                     <td className="px-4 py-2.5 text-right">
                       {e.cancelledAt ? (
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Restore receipt #${e.entryNumber}? Its amount will count again.`)) {
-                              toggleCancel.mutate({ entryId: e.id, cancelled: false });
-                            }
-                          }}
+                          onClick={() => setConfirm({ entryId: e.id, entryNumber: e.entryNumber, action: 'restore' })}
                           disabled={toggleCancel.isPending}
                           className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300"
                         >
@@ -160,11 +158,7 @@ export default function EntriesTab({ bookId }) {
                             Edit
                           </button>
                           <button
-                            onClick={() => {
-                              if (window.confirm(`Cancel receipt #${e.entryNumber}? Its amount will be removed from all totals.`)) {
-                                toggleCancel.mutate({ entryId: e.id, cancelled: true });
-                              }
-                            }}
+                            onClick={() => setConfirm({ entryId: e.id, entryNumber: e.entryNumber, action: 'cancel' })}
                             disabled={toggleCancel.isPending}
                             className="text-xs font-semibold text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                           >
@@ -193,6 +187,24 @@ export default function EntriesTab({ bookId }) {
       </div>
 
       <EditEntryModal bookId={bookId} entry={editing} onClose={() => setEditing(null)} />
+
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.action === 'cancel' ? 'Cancel receipt' : 'Restore receipt'}
+        message={
+          confirm?.action === 'cancel'
+            ? `Cancel receipt #${confirm.entryNumber}? Its amount will be removed from all totals.`
+            : `Restore receipt #${confirm.entryNumber}? Its amount will count again.`
+        }
+        confirmLabel={confirm?.action === 'cancel' ? 'Cancel receipt' : 'Restore receipt'}
+        danger={confirm?.action === 'cancel'}
+        pending={toggleCancel.isPending}
+        onConfirm={() => {
+          toggleCancel.mutate({ entryId: confirm.entryId, cancelled: confirm.action === 'cancel' });
+          setConfirm(null);
+        }}
+        onClose={() => setConfirm(null)}
+      />
     </div>
   );
 }
