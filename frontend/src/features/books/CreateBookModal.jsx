@@ -72,8 +72,8 @@ export default function CreateBookModal({ open, onClose }) {
             {...register('isUpi')}
           />
           <span>
-            <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI book</span>
-            <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI</span>
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI + Cash Book</span>
+            <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI and cash</span>
           </span>
         </label>
 
