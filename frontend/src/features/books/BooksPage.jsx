@@ -99,7 +99,7 @@ export default function BooksPage() {
                 <div className="text-xs text-slate-400 dark:text-slate-500">Area: {b.area}</div>
               </div>
               <div className="flex items-center gap-2">
-                  {b.isUpi && <UpiBadge />}
+                  {b.isUpiCash ? <UpiBadge label="UPI + Cash" /> : b.isUpi ? <UpiBadge /> : null}
                   <StatusBadge status={b.status} />
                 </div>
             </div>

@@ -14,13 +14,14 @@ export const BOOK_SELECT = {
   pracharak: true,
   area: true,
   isUpi: true,
+  isUpiCash: true,
   createdBy: true,
   createdAt: true,
   updatedAt: true,
   completedAt: true,
 };
 
-export async function createBook({ code, bookNumber, pracharak = null, area = null, isUpi = false, createdBy, req }) {
+export async function createBook({ code, bookNumber, pracharak = null, area = null, isUpi = false, isUpiCash = false, createdBy, req }) {
   try {
     const book = await prisma.book.create({
       data: {
@@ -28,7 +29,8 @@ export async function createBook({ code, bookNumber, pracharak = null, area = nu
         bookNumber,
         pracharak: pracharak || null,
         area: area || 'MAHAKALI',
-        isUpi: isUpi || false,
+        isUpi: isUpi && !isUpiCash,
+        isUpiCash: isUpiCash || false,
         createdBy,
       },
       select: BOOK_SELECT,

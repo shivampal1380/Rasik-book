@@ -104,7 +104,7 @@ export default function ComparePage() {
                     {slot.label}
                     {!slot.required && <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">optional</span>}
                   </span>
-                  {chosen?.isUpi && <UpiBadge />}
+                  {chosen?.isUpiCash ? <UpiBadge label="UPI + Cash" /> : chosen?.isUpi ? <UpiBadge /> : null}
                 </span>
                 <BookPicker
                   value={selected[slot.key]}
@@ -185,7 +185,7 @@ export default function ComparePage() {
                     <th key={b.id} className="px-4 py-3 text-right">
                       <span className="inline-flex items-center gap-1.5">
                         {b.code}/{b.bookNumber}
-                        {b.isUpi && <UpiBadge />}
+                        {b.isUpiCash ? <UpiBadge label="UPI + Cash" /> : b.isUpi ? <UpiBadge /> : null}
                       </span>
                       <span className="ml-1 block text-[10px] font-medium normal-case text-slate-400 dark:text-slate-500">
                         {rangeLabel(b)}
@@ -281,7 +281,7 @@ function BookPicker({ value, selected, options, placeholder, onPick }) {
           {value ? `${selected?.code}/${selected?.bookNumber}` : placeholder}
         </span>
         <span className="flex shrink-0 items-center gap-1.5">
-          {selected?.isUpi && <UpiBadge />}
+          {selected?.isUpiCash ? <UpiBadge label="UPI + Cash" /> : selected?.isUpi ? <UpiBadge /> : null}
           <ChevronDown size={16} className={`text-slate-400 transition-transform dark:text-slate-500 ${open ? 'rotate-180' : ''}`} />
         </span>
       </button>
@@ -318,7 +318,7 @@ function BookPicker({ value, selected, options, placeholder, onPick }) {
                   {b.code}/{b.bookNumber}
                   <span className="ml-2 text-xs font-medium text-slate-400 dark:text-slate-500">{b.status}</span>
                 </span>
-                {b.isUpi && <UpiBadge />}
+                {b.isUpiCash ? <UpiBadge label="UPI + Cash" /> : b.isUpi ? <UpiBadge /> : null}
               </button>
             );
           })}

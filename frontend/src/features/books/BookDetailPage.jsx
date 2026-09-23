@@ -84,7 +84,7 @@ export default function BookDetailPage() {
           <div>
             <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-800 dark:text-slate-100">
               {book.code}/{book.bookNumber}
-              {book.isUpi && <UpiBadge />}
+              {book.isUpiCash ? <UpiBadge label="UPI + Cash" /> : book.isUpi ? <UpiBadge /> : null}
               <StatusBadge status={book.status} />
             </h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">

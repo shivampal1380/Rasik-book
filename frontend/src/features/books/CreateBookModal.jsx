@@ -12,14 +12,9 @@ const schema = z.object({
   code: z.string().trim().min(1, 'Code is required').max(8, 'Max 8 characters'),
   bookNumber: z.string().trim().min(1, 'Book number is required'),
   pracharak: z.string().trim().max(100).optional(),
-  paymentMode: z.enum(['CASH', 'UPI', 'UPI_CASH']).default('CASH'),
+  isUpi: z.boolean().optional(),
+  isUpiCash: z.boolean().optional(),
 });
-
-const BOOK_MODES = [
-  { value: 'CASH', label: 'Cash Book', hint: 'This book collects payments in cash' },
-  { value: 'UPI', label: 'UPI Book', hint: 'This book collects payments via UPI' },
-  { value: 'UPI_CASH', label: 'UPI + Cash Book', hint: 'This book collects payments via UPI and cash' },
-];
 
 export default function CreateBookModal({ open, onClose }) {
   const queryClient = useQueryClient();
@@ -27,11 +22,12 @@ export default function CreateBookModal({ open, onClose }) {
     register,
     handleSubmit,
     reset,
+    setValue,
     setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { code: 'A01', bookNumber: '', pracharak: '', paymentMode: 'CASH' },
+    defaultValues: { code: 'A01', bookNumber: '', pracharak: '', isUpi: false, isUpiCash: false },
   });
 
   const mutation = useMutation({
@@ -50,17 +46,7 @@ export default function CreateBookModal({ open, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Create a new book">
-      <form
-        onSubmit={handleSubmit(d =>
-          mutation.mutate({
-            code: d.code,
-            bookNumber: d.bookNumber,
-            pracharak: d.pracharak || undefined,
-            isUpi: d.paymentMode !== 'CASH',
-          }),
-        )}
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="space-y-4">
         {errors.root && <ErrorAlert message={errors.root.message} />}
 
         <div className="grid grid-cols-2 gap-4">
@@ -84,21 +70,39 @@ export default function CreateBookModal({ open, onClose }) {
         <div>
           <span className="label">Book mode</span>
           <div className="space-y-2">
-            {BOOK_MODES.map(o => (
-              <label key={o.value} className="flex cursor-pointer items-start gap-2">
-                <input
-                  type="radio"
-                  value={o.value}
-                  className="mt-0.5 h-4 w-4 border-slate-300 text-brand-700 accent-brand-700"
-                  {...register('paymentMode')}
-                />
-                <span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">{o.label}</span>
-                  <span className="block text-xs text-slate-500 dark:text-slate-400">{o.hint}</span>
-                </span>
-              </label>
-            ))}
+            <label className="flex cursor-pointer items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-700 accent-brand-700"
+                {...register('isUpi')}
+                onChange={e => {
+                  register('isUpi').onChange(e);
+                  if (e.target.checked) setValue('isUpiCash', false);
+                }}
+              />
+              <span>
+                <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI Book</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI</span>
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-700 accent-brand-700"
+                {...register('isUpiCash')}
+                onChange={e => {
+                  register('isUpiCash').onChange(e);
+                  if (e.target.checked) setValue('isUpi', false);
+                }}
+              />
+              <span>
+                <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI + Cash Book</span>
+                <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI and cash</span>
+              </span>
+            </label>
           </div>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Leave both unchecked to create a normal cash book.</p>
         </div>
 
         <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">

@@ -29,6 +29,7 @@ export const createBookSchema = z.object({
   pracharak: z.string().trim().max(100).optional().nullable(),
   area: z.string().trim().max(100).optional().nullable(),
   isUpi: z.boolean().optional(),
+  isUpiCash: z.boolean().optional(),
 });
 
 export const listBooksQuerySchema = z.object({

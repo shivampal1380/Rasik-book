@@ -9,7 +9,7 @@ import { getVisibleHeadSet } from './headconfig.service.js';
 export async function compareBooks({ bookIds, ranges = [] }) {
   const books = await prisma.book.findMany({
     where: { id: { in: bookIds } },
-    select: { id: true, code: true, bookNumber: true, maxEntries: true, isUpi: true },
+    select: { id: true, code: true, bookNumber: true, maxEntries: true, isUpi: true, isUpiCash: true },
   });
   if (books.length !== bookIds.length) {
     throw new NotFoundError('One or more books not found', 'BOOK_NOT_FOUND');
@@ -52,6 +52,7 @@ export async function compareBooks({ bookIds, ranges = [] }) {
         bookNumber: book.bookNumber,
         maxEntries: book.maxEntries,
         isUpi: book.isUpi,
+        isUpiCash: book.isUpiCash,
         range: { from: rangeFrom, to: rangeTo },
         grandTotal,
         byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0 }),

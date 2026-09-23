@@ -14,11 +14,11 @@ export function StatusBadge({ status }) {
   );
 }
 
-export function UpiBadge() {
+export function UpiBadge({ label = 'UPI' }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400 px-2.5 py-0.5 text-xs font-bold text-yellow-950 shadow-[0_0_8px_rgba(250,204,21,0.7)] ring-1 ring-inset ring-yellow-500/60 dark:bg-yellow-400 dark:text-yellow-950">
       <Zap size={11} strokeWidth={3} className="text-yellow-900" fill="currentColor" />
-      UPI
+      {label}
     </span>
   );
 }
