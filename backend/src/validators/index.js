@@ -149,6 +149,15 @@ export const listAuditQuerySchema = z.object({
   userId: z.string().uuid().optional(),
 });
 
+// ISO date field that must also be a real calendar date (avoids invalid dates
+// such as 2026-13-99 reaching Date/Prisma where they would error as a 500).
+const isoDateField = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, 'Use YYYY-MM-DD format')
+  .refine(v => !Number.isNaN(Date.parse(`${v}T00:00:00Z`)), 'Use a valid calendar date');
+
+const optionalIsoDate = isoDateField.optional();
+
 // --- Compare books ---
 const optionalReceiptNo = z.preprocess(
   v => (v === '' || v == null ? undefined : v),
@@ -194,8 +203,8 @@ export const searchEntriesQuerySchema = z.object({
   head: z.enum(HEAD_VALUES).optional(),
   amountMin: z.coerce.number().min(0).optional(),
   amountMax: z.coerce.number().min(0).optional(),
-  dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format').optional(),
-  dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format').optional(),
+  dateFrom: optionalIsoDate,
+  dateTo: optionalIsoDate,
   sort: z.enum(['entryNumber', 'createdAt', 'amount', 'bookNumber']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
 });

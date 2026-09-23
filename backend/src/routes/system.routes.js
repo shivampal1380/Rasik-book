@@ -5,6 +5,7 @@ import { listAuditLogs } from '../controllers/misc.controller.js';
 import { getHeadConfig, updateHeadVisibility } from '../controllers/headconfig.controller.js';
 import { getPdfConfig, updatePdfConfig } from '../controllers/pdfconfig.controller.js';
 import { authenticate, requireRole, requireAdmin } from '../middleware/auth.js';
+import { apiRateLimiter } from '../middleware/rateLimit.js';
 import {
   validate,
   createUserSchema,
@@ -22,6 +23,7 @@ const ALLOWED = ['SUPER_ADMIN', 'ADMIN', 'OPERATOR'];
 const router = Router();
 router.use(authenticate);
 router.use(requireRole(...ALLOWED));
+router.use(apiRateLimiter);
 
 router.get('/dashboard', dashboard);
 

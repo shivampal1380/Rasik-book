@@ -17,11 +17,15 @@ export function paginate(total, page, pageSize) {
   return { total, page, pageSize: size, pages };
 }
 
-// Normalise a query page param into (page, skip, take)
+// Normalise a query page param into (page, skip, take). Page is clamped so
+// absurd values can't overflow the DB skip computation (which surfaced as a
+// 500 previously) or force an unbounded scan.
+const MAX_PAGE = 1_000_000;
+
 export function fromPagination(query, defaultSize = 20, maxSize = 200) {
   const rawPage = Number.parseInt(query.page, 10);
   const rawSize = Number.parseInt(query.pageSize, 10);
-  const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.min(MAX_PAGE, Math.floor(rawPage)) : 1;
   const pageSize = Number.isFinite(rawSize) && rawSize > 0 ? Math.min(rawSize, maxSize) : defaultSize;
   return { page, pageSize, skip: (page - 1) * pageSize };
 }

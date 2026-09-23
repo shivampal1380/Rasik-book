@@ -43,6 +43,20 @@ export function errorHandler(err, req, res, _next) {
     });
   }
 
+  // Body-parser (malformed JSON / payload too large), CORS and any other
+  // upstream 4xx. These carry a numeric statusCode and must not be reported
+  // as internal errors.
+  const status = err?.statusCode ?? err?.status;
+  if (typeof status === 'number' && status >= 400 && status < 500) {
+    const code =
+      err?.code ||
+      (status === 413 ? 'PAYLOAD_TOO_LARGE' : status === 400 ? 'BAD_REQUEST' : 'REQUEST_ERROR');
+    return res.status(status).json({
+      success: false,
+      error: { code, message: err?.message || 'Bad request' },
+    });
+  }
+
   // --- fallback 500 ---
   log.error({ err, requestId: req.id }, 'Unhandled error');
 

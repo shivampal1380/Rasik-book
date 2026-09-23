@@ -27,12 +27,15 @@ export const updateUser = asyncHandler(async (req, res) => {
     data: req.body,
     actor: req.user,
   });
+  // Never persist the plaintext password in the audit trail.
+  const audited = { ...req.body };
+  delete audited.password;
   await writeAudit({
     userId: req.user.sub,
     action: 'USER_UPDATED',
     entity: 'User',
     entityId: user.id,
-    newValue: req.body,
+    newValue: audited,
     req,
   });
   return ok(res, { user });

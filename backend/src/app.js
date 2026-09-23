@@ -38,7 +38,12 @@ app.use(
       // allow server-to-server / curl with no Origin
       if (!origin) return cb(null, true);
       if (allowedOrigins.includes(origin)) return cb(null, true);
-      cb(new Error('Origin not allowed by CORS'));
+      cb(
+        Object.assign(new Error('Origin not allowed by CORS'), {
+          statusCode: 403,
+          code: 'CORS_ORIGIN_DENIED',
+        }),
+      );
     },
     credentials: true,
   }),

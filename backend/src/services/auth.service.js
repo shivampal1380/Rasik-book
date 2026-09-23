@@ -8,8 +8,9 @@ async function findByEmail(email) {
 
 export async function login({ email, password }) {
   const user = await findByEmail(email.toLowerCase());
-  if (!user) throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
-  if (!user.isActive) throw new UnauthorizedError('This account has been deactivated', 'ACCOUNT_INACTIVE');
+  // A uniform failure for unknown email, wrong password and deactivated
+  // accounts avoids leaking which emails exist or their status.
+  if (!user || !user.isActive) throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
 
   const match = await bcrypt.compare(password, user.passwordHash);
   if (!match) throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');

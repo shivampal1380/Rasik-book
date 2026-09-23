@@ -13,14 +13,26 @@ function extractToken(req) {
   return null;
 }
 
-// Authenticate: set req.user when valid token present.
-export function authenticate(req, _res, next) {
+// Authenticate: set req.user when a valid token for a current, active account
+// is present. The account is re-read from the DB so deactivated users are
+// rejected immediately and role changes take effect on the next request.
+export async function authenticate(req, _res, next) {
   try {
     const token = extractToken(req);
     if (!token) throw new UnauthorizedError();
 
-    const payload = jwt.verify(token, env.JWT_SECRET);
-    req.user = payload; // { sub, email, role, name }
+    const payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, name: true, email: true, role: true, isActive: true },
+    });
+    if (!user || !user.isActive) {
+      throw new UnauthorizedError('Authentication required', 'UNAUTHORIZED');
+    }
+
+    // Role always comes from the DB so a stale/forged token role is ignored.
+    req.user = { sub: user.id, name: user.name, email: user.email, role: user.role };
     next();
   } catch (err) {
     if (err instanceof UnauthorizedError) return next(err);
@@ -75,7 +87,10 @@ export const requireAdmin = requireRole('SUPER_ADMIN', 'ADMIN');
 export function optionalAuth(req, _res, next) {
   try {
     const token = extractToken(req);
-    if (token) req.user = jwt.verify(token, env.JWT_SECRET);
+    if (token) {
+      const payload = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+      req.user = { sub: payload.sub, name: payload.name, email: payload.email, role: payload.role };
+    }
   } catch {
     // silently ignore invalid tokens on optional paths
   }
