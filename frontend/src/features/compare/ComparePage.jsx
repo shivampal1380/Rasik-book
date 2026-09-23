@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown } from 'lucide-react';
 import { compareBooks } from './compareApi.js';
@@ -73,17 +73,31 @@ export default function ComparePage() {
     return `Receipts ${from ?? 1}–${to ?? b.maxEntries}`;
   };
 
-  const allUpiCash = (data?.books?.length ?? 0) > 0 && data.books.every(b => b.isUpiCash);
-
   const combinedTotals = data?.heads?.map((h, idx) => ({
     total: data.books.reduce((s, b) => s + (b.byHead[idx]?.total ?? 0), 0),
     count: data.books.reduce((s, b) => s + (b.byHead[idx]?.count ?? 0), 0),
-    upi: data.books.reduce((s, b) => s + (b.byHead[idx]?.upi ?? 0), 0),
-    cash: data.books.reduce((s, b) => s + (b.byHead[idx]?.cash ?? 0), 0),
   }));
   const combinedGrand = data?.books?.reduce((s, b) => s + (b.grandTotal ?? 0), 0);
-  const combinedUpi = data?.books?.reduce((s, b) => s + (b.upiTotal ?? 0), 0);
-  const combinedCash = data?.books?.reduce((s, b) => s + (b.cashTotal ?? 0), 0);
+
+  // A UPI + Cash book occupies two columns in the tally table (UPI | Cash);
+  // every other book occupies one.
+  const columns = data?.books?.flatMap(b =>
+    b.isUpiCash ? [{ b, method: 'UPI' }, { b, method: 'CASH' }] : [{ b, method: null }],
+  ) ?? [];
+
+  const cellOf = (col, idx) => {
+    const cell = col.b.byHead[idx];
+    if (!cell) return { value: 0, count: 0 };
+    if (col.method === 'UPI') return { value: cell.upi ?? 0, count: cell.upiCount ?? 0 };
+    if (col.method === 'CASH') return { value: cell.cash ?? 0, count: cell.cashCount ?? 0 };
+    return { value: cell.total ?? 0, count: cell.count ?? 0 };
+  };
+
+  const totalOf = col => {
+    if (col.method === 'UPI') return { value: col.b.upiTotal ?? 0, count: col.b.upiCount ?? 0 };
+    if (col.method === 'CASH') return { value: col.b.cashTotal ?? 0, count: col.b.cashCount ?? 0 };
+    return { value: col.b.grandTotal ?? 0, count: null };
+  };
 
   return (
     <div>
@@ -186,9 +200,9 @@ export default function ComparePage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
-                  <th className="px-4 py-3 text-left">Head</th>
+                  <th rowSpan={2} className="px-4 py-3 text-left">Head</th>
                   {data.books.map(b => (
-                    <th key={b.id} className="px-4 py-3 text-right">
+                    <th key={b.id} colSpan={b.isUpiCash ? 2 : 1} className="px-4 py-3 text-right">
                       <span className="inline-flex items-center gap-1.5">
                         {b.code}/{b.bookNumber}
                         {b.isUpiCash ? <UpiBadge label="UPI + Cash" /> : b.isUpi ? <UpiBadge /> : null}
@@ -198,72 +212,55 @@ export default function ComparePage() {
                       </span>
                     </th>
                   ))}
-                  <th className="border-l border-brand-200 bg-brand-50 px-4 py-3 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
+                  <th rowSpan={2} className="border-l border-brand-200 bg-brand-50 px-4 py-3 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
                     Total
                     <span className="ml-1 block text-[10px] font-medium normal-case text-brand-600 dark:text-brand-300">
                       all books
                     </span>
                   </th>
                 </tr>
+                <tr>
+                  {data.books.map(b =>
+                    b.isUpiCash ? (
+                      <Fragment key={b.id}>
+                        <th className="px-4 py-2 text-right text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-300">UPI</th>
+                        <th className="px-4 py-2 text-right text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Cash</th>
+                      </Fragment>
+                    ) : (
+                      <th key={`${b.id}-sp`} className="px-4 py-2" aria-hidden="true" />
+                    ),
+                  )}
+                </tr>
               </thead>
               <tbody>
                 {data.heads.map((h, idx) => (
                   <tr key={h.head} className="border-t border-slate-100 hover:bg-slate-50/50 dark:border-slate-800 dark:hover:bg-slate-800/40">
                     <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-300">{h.label}</td>
-                    {data.books.map(b => {
-                      const cell = b.byHead[idx];
-                      const total = cell?.total ?? 0;
-                      const count = cell?.count ?? 0;
-                      if (total <= 0) {
-                        return (
-                          <td key={b.id} className="px-4 py-2.5 text-right">
-                            <span className="text-slate-300 dark:text-slate-600">–</span>
-                          </td>
-                        );
-                      }
+                    {columns.map((col, j) => {
+                      const { value, count } = cellOf(col, idx);
                       return (
-                        <td key={b.id} className="px-4 py-2.5 text-right">
-                          {b.isUpiCash ? (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="text-[11px] font-bold text-yellow-800 dark:text-yellow-200">
-                                UPI {formatINR(cell?.upi ?? 0)}
-                              </span>
-                              <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                                Cash {formatINR(cell?.cash ?? 0)}
-                              </span>
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500">{count} receipt{count === 1 ? '' : 's'}</span>
-                            </div>
-                          ) : (
+                        <td key={`${col.b.id}-${col.method ?? 'all'}-${j}`} className="px-4 py-2.5 text-right">
+                          {value > 0 ? (
                             <>
-                              <div className="font-semibold text-slate-800 dark:text-slate-100">{formatINR(total)}</div>
+                              <div className={`font-semibold ${col.method === 'UPI' ? 'text-yellow-800 dark:text-yellow-200' : col.method === 'CASH' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-100'}`}>
+                                {formatINR(value)}
+                              </div>
                               <div className="text-[11px] text-slate-400 dark:text-slate-500">{count} receipt{count === 1 ? '' : 's'}</div>
                             </>
+                          ) : (
+                            <span className="text-slate-300 dark:text-slate-600">–</span>
                           )}
                         </td>
                       );
                     })}
                     <td className="border-l border-brand-200 bg-brand-50 px-4 py-2.5 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
                       {combinedTotals[idx].total > 0 ? (
-                        allUpiCash ? (
-                          <div className="flex flex-col items-end gap-0.5">
-                            <span className="text-[11px] font-bold text-yellow-800 dark:text-yellow-200">
-                              UPI {formatINR(combinedTotals[idx].upi)}
-                            </span>
-                            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                              Cash {formatINR(combinedTotals[idx].cash)}
-                            </span>
-                            <div className="text-[10px] text-brand-600 dark:text-brand-300">
-                              {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
-                            </div>
+                        <>
+                          <div className="font-bold text-brand-800 dark:text-brand-200">{formatINR(combinedTotals[idx].total)}</div>
+                          <div className="text-[11px] text-brand-600 dark:text-brand-300">
+                            {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
                           </div>
-                        ) : (
-                          <>
-                            <div className="font-bold text-brand-800 dark:text-brand-200">{formatINR(combinedTotals[idx].total)}</div>
-                            <div className="text-[11px] text-brand-600 dark:text-brand-300">
-                              {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
-                            </div>
-                          </>
-                        )
+                        </>
                       ) : (
                         <span className="text-slate-300 dark:text-slate-600">–</span>
                       )}
@@ -272,30 +269,13 @@ export default function ComparePage() {
                 ))}
                 <tr className="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
                   <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-100">TOTAL</td>
-                  {data.books.map(b =>
-                    b.isUpiCash ? (
-                      <td key={b.id} className="px-4 py-2.5 text-right">
-                        <div className="flex flex-col items-end gap-0.5 font-bold">
-                          <span className="text-xs text-yellow-800 dark:text-yellow-200">UPI {formatINR(b.upiTotal ?? 0)}</span>
-                          <span className="text-xs text-emerald-700 dark:text-emerald-300">Cash {formatINR(b.cashTotal ?? 0)}</span>
-                        </div>
-                      </td>
-                    ) : (
-                      <td key={b.id} className="px-4 py-2.5 text-right font-bold text-slate-800 dark:text-slate-100">
-                        {formatINR(b.grandTotal)}
-                      </td>
-                    ),
-                  )}
+                  {columns.map((col, j) => (
+                    <td key={`${col.b.id}-${col.method ?? 'all'}-${j}`} className={`px-4 py-2.5 text-right font-bold ${col.method === 'UPI' ? 'text-yellow-800 dark:text-yellow-200' : col.method === 'CASH' ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-100'}`}>
+                      {formatINR(totalOf(col).value)}
+                    </td>
+                  ))}
                   <td className="border-l border-brand-200 bg-brand-100 px-4 py-2.5 text-right font-bold text-brand-900 dark:border-brand-500/40 dark:bg-brand-500/15 dark:text-brand-200">
-                    {allUpiCash ? (
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-xs text-yellow-800 dark:text-yellow-200">UPI {formatINR(combinedUpi)}</span>
-                        <span className="text-xs text-emerald-700 dark:text-emerald-300">Cash {formatINR(combinedCash)}</span>
-                        <span className="text-[10px] font-semibold text-brand-700 dark:text-brand-300">Rs. {formatINR(combinedGrand)}</span>
-                      </div>
-                    ) : (
-                      formatINR(combinedGrand)
-                    )}
+                    {formatINR(combinedGrand)}
                   </td>
                 </tr>
               </tbody>

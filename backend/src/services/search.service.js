@@ -43,15 +43,24 @@ export async function compareBooks({ bookIds, ranges = [] }) {
       let grandTotal = 0;
       let upiTotal = 0;
       let cashTotal = 0;
+      let upiCount = 0;
+      let cashCount = 0;
       for (const g of groups) {
-        const acc = byHead[g.head] ?? (byHead[g.head] = { total: 0, count: 0, upi: 0, cash: 0 });
+        const acc = byHead[g.head] ?? (byHead[g.head] = { total: 0, count: 0, upi: 0, cash: 0, upiCount: 0, cashCount: 0 });
         acc.total += g._sum.amount ?? 0;
         acc.count += g._count._all;
-        if (g.paymentMethod === 'UPI') acc.upi += g._sum.amount ?? 0;
-        else if (g.paymentMethod === 'CASH') acc.cash += g._sum.amount ?? 0;
         grandTotal += g._sum.amount ?? 0;
-        if (g.paymentMethod === 'UPI') upiTotal += g._sum.amount ?? 0;
-        else if (g.paymentMethod === 'CASH') cashTotal += g._sum.amount ?? 0;
+        if (g.paymentMethod === 'UPI') {
+          acc.upi += g._sum.amount ?? 0;
+          acc.upiCount += g._count._all;
+          upiTotal += g._sum.amount ?? 0;
+          upiCount += g._count._all;
+        } else if (g.paymentMethod === 'CASH') {
+          acc.cash += g._sum.amount ?? 0;
+          acc.cashCount += g._count._all;
+          cashTotal += g._sum.amount ?? 0;
+          cashCount += g._count._all;
+        }
       }
 
       return {
@@ -65,7 +74,9 @@ export async function compareBooks({ bookIds, ranges = [] }) {
         grandTotal,
         upiTotal,
         cashTotal,
-        byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0, upi: 0, cash: 0 }),
+        upiCount,
+        cashCount,
+        byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0, upi: 0, cash: 0, upiCount: 0, cashCount: 0 }),
       };
     }),
   );
