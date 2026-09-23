@@ -193,8 +193,8 @@ export default function EntriesTab({ bookId }) {
         title={confirm?.action === 'cancel' ? 'Cancel receipt' : 'Restore receipt'}
         message={
           confirm?.action === 'cancel'
-            ? `Cancel receipt #${confirm.entryNumber}? Its amount will be removed from all totals.`
-            : `Restore receipt #${confirm.entryNumber}? Its amount will count again.`
+            ? `Cancel receipt #${confirm?.entryNumber}? Its amount will be removed from all totals.`
+            : `Restore receipt #${confirm?.entryNumber}? Its amount will count again.`
         }
         confirmLabel={confirm?.action === 'cancel' ? 'Cancel receipt' : 'Restore receipt'}
         danger={confirm?.action === 'cancel'}
