@@ -33,7 +33,7 @@ export async function compareBooks({ bookIds, ranges = [] }) {
       }
 
       const groups = await prisma.bookEntry.groupBy({
-        by: ['head'],
+        by: ['head', 'paymentMethod'],
         where,
         _sum: { amount: true },
         _count: { _all: true },
@@ -41,9 +41,17 @@ export async function compareBooks({ bookIds, ranges = [] }) {
 
       const byHead = {};
       let grandTotal = 0;
+      let upiTotal = 0;
+      let cashTotal = 0;
       for (const g of groups) {
-        byHead[g.head] = { total: g._sum.amount ?? 0, count: g._count._all };
+        const acc = byHead[g.head] ?? (byHead[g.head] = { total: 0, count: 0, upi: 0, cash: 0 });
+        acc.total += g._sum.amount ?? 0;
+        acc.count += g._count._all;
+        if (g.paymentMethod === 'UPI') acc.upi += g._sum.amount ?? 0;
+        else if (g.paymentMethod === 'CASH') acc.cash += g._sum.amount ?? 0;
         grandTotal += g._sum.amount ?? 0;
+        if (g.paymentMethod === 'UPI') upiTotal += g._sum.amount ?? 0;
+        else if (g.paymentMethod === 'CASH') cashTotal += g._sum.amount ?? 0;
       }
 
       return {
@@ -55,7 +63,9 @@ export async function compareBooks({ bookIds, ranges = [] }) {
         isUpiCash: book.isUpiCash,
         range: { from: rangeFrom, to: rangeTo },
         grandTotal,
-        byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0 }),
+        upiTotal,
+        cashTotal,
+        byHead: heads.map(h => byHead[h] ?? { total: 0, count: 0, upi: 0, cash: 0 }),
       };
     }),
   );

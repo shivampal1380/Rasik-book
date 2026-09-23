@@ -73,11 +73,17 @@ export default function ComparePage() {
     return `Receipts ${from ?? 1}–${to ?? b.maxEntries}`;
   };
 
+  const allUpiCash = (data?.books?.length ?? 0) > 0 && data.books.every(b => b.isUpiCash);
+
   const combinedTotals = data?.heads?.map((h, idx) => ({
     total: data.books.reduce((s, b) => s + (b.byHead[idx]?.total ?? 0), 0),
     count: data.books.reduce((s, b) => s + (b.byHead[idx]?.count ?? 0), 0),
+    upi: data.books.reduce((s, b) => s + (b.byHead[idx]?.upi ?? 0), 0),
+    cash: data.books.reduce((s, b) => s + (b.byHead[idx]?.cash ?? 0), 0),
   }));
   const combinedGrand = data?.books?.reduce((s, b) => s + (b.grandTotal ?? 0), 0);
+  const combinedUpi = data?.books?.reduce((s, b) => s + (b.upiTotal ?? 0), 0);
+  const combinedCash = data?.books?.reduce((s, b) => s + (b.cashTotal ?? 0), 0);
 
   return (
     <div>
@@ -208,27 +214,56 @@ export default function ComparePage() {
                       const cell = b.byHead[idx];
                       const total = cell?.total ?? 0;
                       const count = cell?.count ?? 0;
+                      if (total <= 0) {
+                        return (
+                          <td key={b.id} className="px-4 py-2.5 text-right">
+                            <span className="text-slate-300 dark:text-slate-600">–</span>
+                          </td>
+                        );
+                      }
                       return (
                         <td key={b.id} className="px-4 py-2.5 text-right">
-                          {total > 0 ? (
+                          {b.isUpiCash ? (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="text-[11px] font-bold text-yellow-800 dark:text-yellow-200">
+                                UPI {formatINR(cell?.upi ?? 0)}
+                              </span>
+                              <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                                Cash {formatINR(cell?.cash ?? 0)}
+                              </span>
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500">{count} receipt{count === 1 ? '' : 's'}</span>
+                            </div>
+                          ) : (
                             <>
                               <div className="font-semibold text-slate-800 dark:text-slate-100">{formatINR(total)}</div>
                               <div className="text-[11px] text-slate-400 dark:text-slate-500">{count} receipt{count === 1 ? '' : 's'}</div>
                             </>
-                          ) : (
-                            <span className="text-slate-300 dark:text-slate-600">–</span>
                           )}
                         </td>
                       );
                     })}
                     <td className="border-l border-brand-200 bg-brand-50 px-4 py-2.5 text-right dark:border-brand-500/40 dark:bg-brand-500/10">
                       {combinedTotals[idx].total > 0 ? (
-                        <>
-                          <div className="font-bold text-brand-800 dark:text-brand-200">{formatINR(combinedTotals[idx].total)}</div>
-                          <div className="text-[11px] text-brand-600 dark:text-brand-300">
-                            {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
+                        allUpiCash ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-[11px] font-bold text-yellow-800 dark:text-yellow-200">
+                              UPI {formatINR(combinedTotals[idx].upi)}
+                            </span>
+                            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                              Cash {formatINR(combinedTotals[idx].cash)}
+                            </span>
+                            <div className="text-[10px] text-brand-600 dark:text-brand-300">
+                              {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
+                            </div>
                           </div>
-                        </>
+                        ) : (
+                          <>
+                            <div className="font-bold text-brand-800 dark:text-brand-200">{formatINR(combinedTotals[idx].total)}</div>
+                            <div className="text-[11px] text-brand-600 dark:text-brand-300">
+                              {combinedTotals[idx].count} receipt{combinedTotals[idx].count === 1 ? '' : 's'}
+                            </div>
+                          </>
+                        )
                       ) : (
                         <span className="text-slate-300 dark:text-slate-600">–</span>
                       )}
@@ -237,13 +272,30 @@ export default function ComparePage() {
                 ))}
                 <tr className="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
                   <td className="px-4 py-2.5 font-bold text-slate-800 dark:text-slate-100">TOTAL</td>
-                  {data.books.map(b => (
-                    <td key={b.id} className="px-4 py-2.5 text-right font-bold text-slate-800 dark:text-slate-100">
-                      {formatINR(b.grandTotal)}
-                    </td>
-                  ))}
+                  {data.books.map(b =>
+                    b.isUpiCash ? (
+                      <td key={b.id} className="px-4 py-2.5 text-right">
+                        <div className="flex flex-col items-end gap-0.5 font-bold">
+                          <span className="text-xs text-yellow-800 dark:text-yellow-200">UPI {formatINR(b.upiTotal ?? 0)}</span>
+                          <span className="text-xs text-emerald-700 dark:text-emerald-300">Cash {formatINR(b.cashTotal ?? 0)}</span>
+                        </div>
+                      </td>
+                    ) : (
+                      <td key={b.id} className="px-4 py-2.5 text-right font-bold text-slate-800 dark:text-slate-100">
+                        {formatINR(b.grandTotal)}
+                      </td>
+                    ),
+                  )}
                   <td className="border-l border-brand-200 bg-brand-100 px-4 py-2.5 text-right font-bold text-brand-900 dark:border-brand-500/40 dark:bg-brand-500/15 dark:text-brand-200">
-                    {formatINR(combinedGrand)}
+                    {allUpiCash ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="text-xs text-yellow-800 dark:text-yellow-200">UPI {formatINR(combinedUpi)}</span>
+                        <span className="text-xs text-emerald-700 dark:text-emerald-300">Cash {formatINR(combinedCash)}</span>
+                        <span className="text-[10px] font-semibold text-brand-700 dark:text-brand-300">Rs. {formatINR(combinedGrand)}</span>
+                      </div>
+                    ) : (
+                      formatINR(combinedGrand)
+                    )}
                   </td>
                 </tr>
               </tbody>
