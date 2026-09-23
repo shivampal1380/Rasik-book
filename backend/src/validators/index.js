@@ -66,6 +66,7 @@ export const createEntrySchema = z.object({
     .refine(n => n <= 2_000_000_000, {
       message: 'Amount is too large',
     }),
+  paymentMethod: z.enum(['UPI', 'CASH']).optional().nullable(),
 });
 
 export const listEntriesQuerySchema = z.object({
@@ -81,6 +82,7 @@ export const updateEntrySchema = z
   .object({
     head: z.enum(HEAD_VALUES, { message: 'A valid head must be selected' }).optional(),
     amount: createEntrySchema.shape.amount.optional(),
+    paymentMethod: z.enum(['UPI', 'CASH']).optional().nullable(),
     cancelled: z.boolean().optional(),
   })
   .refine(d => d.cancelled != null || (d.head != null && d.amount != null), {

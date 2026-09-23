@@ -4,11 +4,12 @@ import { createEntry, fetchEntries } from './booksApi.js';
 import { ENTRY_HEADS, entryHeadLabel, formatINR, getErrorMessage } from '../../lib/api.js';
 import { useVisibleHeads } from '../config/useVisibleHeads.js';
 import { Spinner } from '../../components/ui/Spinner.jsx';
-import { ErrorAlert, StatusBadge } from '../../components/ui/Feedback.jsx';
+import { ErrorAlert, StatusBadge, PaymentChip } from '../../components/ui/Feedback.jsx';
 
 export default function EntryTab({ book }) {
   const queryClient = useQueryClient();
   const [head, setHead] = useState('');
+  const [method, setMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [err, setErr] = useState('');
   const amountRef = useRef(null);
@@ -23,7 +24,8 @@ export default function EntryTab({ book }) {
   });
 
   const mutation = useMutation({
-    mutationFn: () => createEntry(book.id, { head, amount: parseInt(amount, 10) }),
+    mutationFn: () =>
+      createEntry(book.id, { head, amount: parseInt(amount, 10), ...(book.isUpiCash ? { paymentMethod: method } : {}) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['book', book.id] });
       queryClient.invalidateQueries({ queryKey: ['book-entries', book.id] });
@@ -32,6 +34,7 @@ export default function EntryTab({ book }) {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       setAmount('');
       setHead('');
+      setMethod('');
       setErr('');
       amountRef.current?.focus();
     },
@@ -46,6 +49,10 @@ export default function EntryTab({ book }) {
     e.preventDefault();
     if (!head) {
       setErr('Select a head first.');
+      return;
+    }
+    if (book.isUpiCash && !method) {
+      setErr('Select UPI or Cash for this receipt.');
       return;
     }
     const amt = parseInt(amount, 10);
@@ -103,6 +110,43 @@ export default function EntryTab({ book }) {
           </div>
           <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Pick a head.</p>
         </div>
+
+        {book.isUpiCash && (
+          <div className="mb-4">
+            <label className="label">Paid via</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMethod('UPI');
+                  setErr('');
+                }}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
+                  method === 'UPI'
+                    ? 'border-yellow-400 bg-yellow-400 text-yellow-950'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-yellow-300 hover:text-yellow-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-yellow-500/60 dark:hover:text-yellow-300'
+                }`}
+              >
+                UPI
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMethod('CASH');
+                  setErr('');
+                }}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
+                  method === 'CASH'
+                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-emerald-400 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-emerald-500/60 dark:hover:text-emerald-300'
+                }`}
+              >
+                Cash
+              </button>
+            </div>
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Select how this receipt was paid.</p>
+          </div>
+        )}
 
         <form onSubmit={submit} className="flex items-end gap-3">
           <div className="flex-1">
@@ -165,6 +209,7 @@ export default function EntryTab({ book }) {
                       <td className="py-2 text-slate-600 dark:text-slate-400">{entryHeadLabel(e)}</td>
                       <td className={`py-2 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
                         {formatINR(e.amount)}
+                        {e.paymentMethod && <span className="ml-2 inline-block align-middle"><PaymentChip method={e.paymentMethod} /></span>}
                       </td>
                     </tr>
                   ))}

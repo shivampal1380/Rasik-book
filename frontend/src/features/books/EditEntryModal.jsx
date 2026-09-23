@@ -7,9 +7,10 @@ import { updateEntry } from './booksApi.js';
 import { ENTRY_HEADS, headLabel, formatINR, getErrorMessage } from '../../lib/api.js';
 import { useVisibleHeads } from '../config/useVisibleHeads.js';
 
-export default function EditEntryModal({ bookId, entry, onClose }) {
+export default function EditEntryModal({ bookId, isUpiCash = false, entry, onClose }) {
   const queryClient = useQueryClient();
   const [head, setHead] = useState('BHETA');
+  const [method, setMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [err, setErr] = useState('');
   const lastEntryId = useRef(null);
@@ -21,6 +22,7 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
       lastEntryId.current = entry.id;
     }
     setHead(entry.head);
+    setMethod(entry.paymentMethod || 'UPI');
     setAmount(String(entry.amount));
     setErr('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -31,6 +33,7 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
       updateEntry(bookId, entry.id, {
         head,
         amount: parseInt(amount, 10),
+        ...(isUpiCash ? { paymentMethod: method } : {}),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['book-entries', bookId] });
@@ -94,6 +97,36 @@ export default function EditEntryModal({ bookId, entry, onClose }) {
           <p className="text-xs text-amber-600 dark:text-amber-400">
             This head has been hidden (sessional) — it is only shown here for historical entries.
           </p>
+        )}
+
+        {isUpiCash && (
+          <div>
+            <span className="label">Paid via</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMethod('UPI')}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
+                  method === 'UPI'
+                    ? 'border-yellow-400 bg-yellow-400 text-yellow-950'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-yellow-300 hover:text-yellow-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-yellow-500/60 dark:hover:text-yellow-300'
+                }`}
+              >
+                UPI
+              </button>
+              <button
+                type="button"
+                onClick={() => setMethod('CASH')}
+                className={`rounded-lg border px-2 py-2 text-xs font-semibold transition-colors ${
+                  method === 'CASH'
+                    ? 'border-emerald-500 bg-emerald-500 text-white'
+                    : 'border-slate-300 bg-white text-slate-600 hover:border-emerald-400 hover:text-emerald-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-emerald-500/60 dark:hover:text-emerald-300'
+                }`}
+              >
+                Cash
+              </button>
+            </div>
+          </div>
         )}
 
         <div>

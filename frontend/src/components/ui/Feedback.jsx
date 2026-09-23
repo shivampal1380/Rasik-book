@@ -23,6 +23,24 @@ export function UpiBadge({ label = 'UPI' }) {
   );
 }
 
+export function PaymentChip({ method }) {
+  if (method === 'UPI') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-yellow-900 ring-1 ring-inset ring-yellow-500/40 dark:bg-yellow-400/20 dark:text-yellow-200 dark:ring-yellow-400/30">
+        UPI
+      </span>
+    );
+  }
+  if (method === 'CASH') {
+    return (
+      <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-800 ring-1 ring-inset ring-emerald-600/30 dark:bg-emerald-400/20 dark:text-emerald-200 dark:ring-emerald-400/30">
+        Cash
+      </span>
+    );
+  }
+  return null;
+}
+
 export function ErrorAlert({ message }) {
   if (!message) return null;
   return (

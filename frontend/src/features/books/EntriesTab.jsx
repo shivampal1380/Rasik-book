@@ -4,13 +4,13 @@ import { fetchEntries, updateEntry } from './booksApi.js';
 import { HEADS, headLabel, entryHeadLabel, formatINR, getErrorMessage } from '../../lib/api.js';
 import { useVisibleHeads } from '../config/useVisibleHeads.js';
 import { PageLoader } from '../../components/ui/Spinner.jsx';
-import { ErrorAlert } from '../../components/ui/Feedback.jsx';
+import { ErrorAlert, PaymentChip } from '../../components/ui/Feedback.jsx';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUser } from '../auth/UserContext.js';
 import EditEntryModal from './EditEntryModal.jsx';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.jsx';
 
-export default function EntriesTab({ bookId }) {
+export default function EntriesTab({ bookId, book }) {
   const { isAdmin } = useUser();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
@@ -106,7 +106,10 @@ export default function EntriesTab({ bookId }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">{entryHeadLabel(e)}</td>
+                  <td className="px-4 py-2.5 text-slate-600 dark:text-slate-400">
+                    {entryHeadLabel(e)}
+                    {e.paymentMethod && <span className="ml-2 inline-block align-middle"><PaymentChip method={e.paymentMethod} /></span>}
+                  </td>
                   <td className={`px-4 py-2.5 text-right font-semibold ${e.cancelledAt ? 'text-slate-400 line-through dark:text-slate-500' : 'text-slate-800 dark:text-slate-100'}`}>
                     {formatINR(e.amount)}
                   </td>
@@ -186,7 +189,7 @@ export default function EntriesTab({ bookId }) {
         </div>
       </div>
 
-      <EditEntryModal bookId={bookId} entry={editing} onClose={() => setEditing(null)} />
+      <EditEntryModal bookId={bookId} isUpiCash={book?.isUpiCash} entry={editing} onClose={() => setEditing(null)} />
 
       <ConfirmDialog
         open={!!confirm}

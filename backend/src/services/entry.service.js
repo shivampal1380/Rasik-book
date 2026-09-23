@@ -17,11 +17,11 @@ import { getVisibleHeadSet } from './headconfig.service.js';
 // the next number, never a duplicate. The DB unique constraint
 // (bookId, entryNumber) is the final backstop.
 // ---------------------------------------------------------------------------
-export async function createNextEntry({ bookId, head, amount, createdBy, req }) {
+export async function createNextEntry({ bookId, head, amount, paymentMethod, createdBy, req }) {
   try {
     return await prisma.$transaction(async tx => {
       const rows = await tx.$queryRaw`
-        SELECT id, status, "currentEntryNumber", "maxEntries"
+        SELECT id, status, "currentEntryNumber", "maxEntries", "isUpiCash"
         FROM books
         WHERE id::text = ${bookId}
         FOR UPDATE
@@ -32,6 +32,10 @@ export async function createNextEntry({ bookId, head, amount, createdBy, req }) 
       if (book.status !== 'OPEN') {
         throw new AppError(409, `Book is ${book.status.toLowerCase()} and cannot accept new entries`, 'BOOK_NOT_OPEN');
       }
+      if (book.isUpiCash && !paymentMethod) {
+        throw new ValidationError('For a UPI + Cash book, select UPI or Cash for every receipt');
+      }
+      const storedMethod = book.isUpiCash ? paymentMethod : null;
 
       const entryNumber = book.currentEntryNumber;
       if (entryNumber > book.maxEntries) {
@@ -42,12 +46,13 @@ export async function createNextEntry({ bookId, head, amount, createdBy, req }) 
       }
 
       const entry = await tx.bookEntry.create({
-        data: { bookId, entryNumber, head, amount, createdBy },
+        data: { bookId, entryNumber, head, amount, createdBy, paymentMethod: storedMethod },
         select: {
           id: true,
           entryNumber: true,
           head: true,
           amount: true,
+          paymentMethod: true,
           createdBy: true,
           createdAt: true,
         },
@@ -76,7 +81,7 @@ export async function createNextEntry({ bookId, head, amount, createdBy, req }) 
           action: 'ENTRY_CREATED',
           entity: 'BookEntry',
           entityId: entry.id,
-          newValue: { bookId, entryNumber, head, amount },
+          newValue: { bookId, entryNumber, head, amount, paymentMethod: storedMethod },
           ipAddress: req?.ip ?? undefined,
           userAgent: req?.headers?.['user-agent'] ?? undefined,
         },
@@ -123,6 +128,7 @@ export async function listEntries({ bookId, query }) {
         entryNumber: true,
         head: true,
         amount: true,
+        paymentMethod: true,
         createdBy: true,
         createdAt: true,
         updatedAt: true,
@@ -186,14 +192,14 @@ async function buildRunningTotals(bookId) {
 // (cancelled flag). Marks corrections with the timestamp and records audit.
 // Admin only.
 // ---------------------------------------------------------------------------
-export async function updateEntry({ bookId, entryId, head, amount, cancelled, userId, req }) {
+export async function updateEntry({ bookId, entryId, head, amount, paymentMethod, cancelled, userId, req }) {
   return prisma.$transaction(async tx => {
     const entry = await tx.bookEntry.findUnique({ where: { id: entryId } });
     if (!entry || entry.bookId !== bookId) {
       throw new NotFoundError('Entry not found in this book', 'ENTRY_NOT_FOUND');
     }
 
-    const book = await tx.book.findUnique({ where: { id: bookId }, select: { status: true } });
+    const book = await tx.book.findUnique({ where: { id: bookId }, select: { status: true, isUpiCash: true } });
     if (!book) throw new NotFoundError('Book not found', 'BOOK_NOT_FOUND');
     if (book.status === 'CLOSED') {
       throw new ConflictError('Book is closed and can no longer be modified', 'BOOK_CLOSED');
@@ -244,15 +250,21 @@ export async function updateEntry({ bookId, entryId, head, amount, cancelled, us
     }
 
     // Correction branch.
-    const oldValue = { head: entry.head, amount: entry.amount };
+    const oldValue = { head: entry.head, amount: entry.amount, paymentMethod: entry.paymentMethod };
+    if (book.isUpiCash && !paymentMethod) {
+      throw new ValidationError('For a UPI + Cash book, select UPI or Cash for this receipt');
+    }
+    const data = { head, amount, isCorrected: true, correctedAt: new Date() };
+    if (book.isUpiCash) data.paymentMethod = paymentMethod;
     const updated = await tx.bookEntry.update({
       where: { id: entryId },
-      data: { head, amount, isCorrected: true, correctedAt: new Date() },
+      data,
       select: {
         id: true,
         entryNumber: true,
         head: true,
         amount: true,
+        paymentMethod: true,
         isCorrected: true,
         correctedAt: true,
         cancelledAt: true,
@@ -269,7 +281,7 @@ export async function updateEntry({ bookId, entryId, head, amount, cancelled, us
         entity: 'BookEntry',
         entityId: entryId,
         oldValue,
-        newValue: { head, amount },
+        newValue: { head, amount, paymentMethod: data.paymentMethod },
         ipAddress: req?.ip ?? undefined,
         userAgent: req?.headers?.['user-agent'] ?? undefined,
       },
