@@ -14,9 +14,10 @@ export default function SummaryTab({ bookId, book }) {
   if (summary.error) return <ErrorAlert message={getErrorMessage(summary.error)} />;
   if (!summary.data) return null;
 
-  const { grandTotal, totalEntries, maxEntries } = summary.data;
+  const { grandTotal, upiTotal, cashTotal, totalEntries, maxEntries } = summary.data;
   const byHead = entriesInfo.data?.totals?.byHead ?? [];
   const entryCount = entriesInfo.data?.totals?.totalEntries ?? totalEntries ?? 0;
+  const upiCash = book.isUpiCash;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -36,7 +37,9 @@ export default function SummaryTab({ bookId, book }) {
             <tr>
               <th className="px-5 py-3 text-left">Head</th>
               <th className="px-5 py-3 text-right">Receipts</th>
-              <th className="px-5 py-3 text-right">Amount</th>
+              {upiCash && <th className="px-5 py-3 text-right text-yellow-700 dark:text-yellow-300">UPI</th>}
+              {upiCash && <th className="px-5 py-3 text-right text-emerald-700 dark:text-emerald-300">Cash</th>}
+              {!upiCash && <th className="px-5 py-3 text-right">Amount</th>}
             </tr>
           </thead>
           <tbody>
@@ -46,7 +49,19 @@ export default function SummaryTab({ bookId, book }) {
                 <tr key={h.key} className="border-t border-slate-100 dark:border-slate-800">
                   <td className="px-5 py-3 font-semibold text-slate-700 dark:text-slate-300">{headLabel(h.key)}</td>
                   <td className="px-5 py-3 text-right text-slate-500 dark:text-slate-400">{item?.count ?? 0}</td>
-                  <td className="px-5 py-3 text-right font-semibold text-slate-800 dark:text-slate-100">{formatINR(item?.total ?? 0)}</td>
+                  {upiCash && (
+                    <td className="px-5 py-3 text-right font-semibold text-yellow-800 dark:text-yellow-200">
+                      {formatINR(item?.upi ?? 0)}
+                    </td>
+                  )}
+                  {upiCash && (
+                    <td className="px-5 py-3 text-right font-semibold text-emerald-700 dark:text-emerald-300">
+                      {formatINR(item?.cash ?? 0)}
+                    </td>
+                  )}
+                  {!upiCash && (
+                    <td className="px-5 py-3 text-right font-semibold text-slate-800 dark:text-slate-100">{formatINR(item?.total ?? 0)}</td>
+                  )}
                 </tr>
               );
             })}
@@ -55,7 +70,15 @@ export default function SummaryTab({ bookId, book }) {
             <tr className="border-t-2 border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60">
               <td className="px-5 py-3 font-bold text-slate-800 dark:text-slate-100">TOTAL Rs.</td>
               <td className="px-5 py-3 text-right font-bold text-slate-800 dark:text-slate-100">{entryCount}</td>
-              <td className="px-5 py-3 text-right font-bold text-brand-800 dark:text-brand-300">{formatINR(grandTotal)}</td>
+              {upiCash && (
+                <td className="px-5 py-3 text-right font-bold text-yellow-800 dark:text-yellow-200">{formatINR(upiTotal ?? 0)}</td>
+              )}
+              {upiCash && (
+                <td className="px-5 py-3 text-right font-bold text-emerald-700 dark:text-emerald-300">{formatINR(cashTotal ?? 0)}</td>
+              )}
+              {!upiCash && (
+                <td className="px-5 py-3 text-right font-bold text-brand-800 dark:text-brand-300">{formatINR(grandTotal)}</td>
+              )}
             </tr>
           </tfoot>
         </table>
@@ -83,6 +106,18 @@ export default function SummaryTab({ bookId, book }) {
         <div className="card border-brand-200 bg-brand-50 p-5 dark:border-brand-500/40 dark:bg-brand-500/10">
           <div className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">Grand total</div>
           <div className="mt-1 text-2xl font-bold text-brand-800 dark:text-brand-200">{formatINR(grandTotal)}</div>
+          {upiCash && (
+            <div className="mt-2 space-y-0.5 border-t border-brand-200 pt-2 text-sm dark:border-brand-500/30">
+              <div className="flex justify-between font-semibold text-yellow-800 dark:text-yellow-200">
+                <span>UPI</span>
+                <span>{formatINR(upiTotal ?? 0)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-emerald-700 dark:text-emerald-300">
+                <span>Cash</span>
+                <span>{formatINR(cashTotal ?? 0)}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

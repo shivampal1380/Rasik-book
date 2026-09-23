@@ -193,7 +193,7 @@ export async function getBookTotals(bookId) {
 
   const entries = await prisma.bookEntry.findMany({
     where: { bookId },
-    select: { head: true, amount: true, cancelledAt: true },
+    select: { head: true, amount: true, paymentMethod: true, cancelledAt: true },
   });
 
   const active = entries.filter(e => !e.cancelledAt);
@@ -201,9 +201,13 @@ export async function getBookTotals(bookId) {
   const byHead = {};
   for (const h of HEAD_DISPLAY_ORDER) byHead[h] = 0;
   let grand = 0;
+  let upiTotal = 0;
+  let cashTotal = 0;
   for (const e of active) {
     byHead[e.head] = (byHead[e.head] || 0) + e.amount;
     grand += e.amount;
+    if (e.paymentMethod === 'UPI') upiTotal += e.amount;
+    else if (e.paymentMethod === 'CASH') cashTotal += e.amount;
   }
 
   // Per-head totals are limited to currently-visible heads (sessional heads
@@ -213,6 +217,8 @@ export async function getBookTotals(bookId) {
   return {
     bookId,
     grandTotal: grand,
+    upiTotal,
+    cashTotal,
     totalEntries: entries.length,
     cancelledEntries: entries.length - active.length,
     remainingEntries: Math.max(0, book.maxEntries - entries.length),

@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from '../utils/errors.js';
 import { fromPagination, paginate } from '../utils/http.js';
+import { HEAD_DISPLAY_ORDER } from '../config/constants.js';
 import { getVisibleHeadSet } from './headconfig.service.js';
 
 // ---------------------------------------------------------------------------
@@ -144,7 +145,7 @@ export async function listEntries({ bookId, query }) {
   const running = await buildRunningTotals(bookId);
 
   const byHeadRaw = await prisma.bookEntry.groupBy({
-    by: ['head'],
+    by: ['head', 'paymentMethod'],
     where: { bookId, cancelledAt: null },
     _sum: { amount: true },
     _count: { _all: true },
@@ -153,6 +154,16 @@ export async function listEntries({ bookId, query }) {
     where: { bookId, cancelledAt: null },
     _sum: { amount: true },
   });
+
+  const headMap = {};
+  for (const g of byHeadRaw) {
+    const key = g.head;
+    const acc = headMap[key] ?? (headMap[key] = { total: 0, count: 0, upi: 0, cash: 0 });
+    acc.total += g._sum.amount ?? 0;
+    acc.count += g._count._all;
+    if (g.paymentMethod === 'UPI') acc.upi += g._sum.amount ?? 0;
+    else if (g.paymentMethod === 'CASH') acc.cash += g._sum.amount ?? 0;
+  }
 
   // Per-head totals only for currently-visible heads (sessional heads that
   // are switched off are omitted); the grand total is unchanged.
@@ -165,9 +176,10 @@ export async function listEntries({ bookId, query }) {
     totals: {
       grandTotal: grand._sum.amount ?? 0,
       totalEntries: total,
-      byHead: byHeadRaw
-        .filter(g => visible.has(g.head))
-        .map(g => ({ head: g.head, total: g._sum.amount ?? 0, count: g._count._all })),
+      byHead: HEAD_DISPLAY_ORDER.filter(h => visible.has(h)).map(h => ({
+        head: h,
+        ...(headMap[h] ?? { total: 0, count: 0, upi: 0, cash: 0 }),
+      })),
     },
   };
 }
