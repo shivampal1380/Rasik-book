@@ -181,8 +181,8 @@ function PdfLayoutSection() {
     const current = padded[index];
     return visibleHeads.filter(v => v.head === current || !padded.includes(v.head));
   };
-  const effectiveRow7 = row7Val ?? pdfCfg?.summaryRow7 ?? null;
-  const effectiveRow8 = row8Val ?? pdfCfg?.summaryRow8 ?? null;
+  const effectiveRow7 = row7Val === undefined ? (pdfCfg?.summaryRow7 ?? null) : row7Val;
+  const effectiveRow8 = row8Val === undefined ? (pdfCfg?.summaryRow8 ?? null) : row8Val;
 
   const dirty =
     JSON.stringify(chosen.slice(0, slotCount)) !== JSON.stringify(storedMains.slice(0, slotCount)) ||
