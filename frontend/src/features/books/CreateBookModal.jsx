@@ -72,6 +72,18 @@ export default function CreateBookModal({ open, onClose }) {
             {...register('isUpi')}
           />
           <span>
+            <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI Book</span>
+            <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI</span>
+          </span>
+        </label>
+
+        <label className="flex cursor-pointer items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-700 accent-brand-700"
+            {...register('isUpi')}
+          />
+          <span>
             <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">UPI + Cash Book</span>
             <span className="block text-xs text-slate-500 dark:text-slate-400">This book collects payments via UPI and cash</span>
           </span>
