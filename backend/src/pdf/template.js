@@ -220,16 +220,24 @@ function summaryBlock(byHead, row7, row8, gridCols) {
     { label: 'S.B.F.', key: 'SBF' },
     { label: 'S.S + PCS', keys: ['SS', 'PCS'] },
     { label: 'Langar + FF', keys: ['LANGAR', 'FF'] },
+    row7 ? { label: HEAD_LABEL_MAP[row7] || row7, key: row7 } : null,
+    row8 ? { label: HEAD_LABEL_MAP[row8] || row8, key: row8 } : null,
   ];
-  if (row7) rows.push({ label: HEAD_LABEL_MAP[row7] || row7, key: row7 });
-  if (row8) rows.push({ label: HEAD_LABEL_MAP[row8] || row8, key: row8 });
 
   const labelSpan = Math.max(1, gridCols - 3);
   const rsSpan = Math.max(1, Math.min(2, gridCols - labelSpan - 1));
   const colgroup = `<col style="width:var(--no-col)">${'<col>'.repeat(Math.max(0, gridCols - 1))}`;
 
+  const blankRow = `
+  <tr>
+    <td class="s-label" colspan="${labelSpan}"><div>&nbsp;</div></td>
+    <td class="s-val" colspan="${rsSpan}"><div>&nbsp;</div></td>
+    <td class="s-paise"><div>&nbsp;</div></td>
+  </tr>`;
+
   const body = rows
     .map(r => {
+      if (!r) return blankRow;
       const vals = (r.keys || [r.key]).map(k => (byHead[k] || 0));
       const label = r.keys
         ? `${r.label} (${vals.map(v => Number(v).toLocaleString('en-IN')).join(' + ')})`
@@ -244,7 +252,9 @@ function summaryBlock(byHead, row7, row8, gridCols) {
     })
     .join('');
 
-  const sum = rows.reduce((acc, r) => acc + (r.keys || [r.key]).reduce((a, k) => a + (byHead[k] || 0), 0), 0);
+  const sum = rows
+    .filter(Boolean)
+    .reduce((acc, r) => acc + (r.keys || [r.key]).reduce((a, k) => a + (byHead[k] || 0), 0), 0);
 
   return `
 <table class="summary">

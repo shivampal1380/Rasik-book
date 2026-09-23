@@ -309,31 +309,6 @@ function PdfLayoutSection() {
         )}
       </div>
 
-      <div className="mt-5 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Summary rows 7 &amp; 8
-        </div>
-        <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">
-          These two heads print in the fixed 9-row PDF summary (S U M M A R Y → BHETA → B.F. → S.B.F. → S.S + PCS → Langar + FF → rows 7 &amp; 8 → TOTAL Rs.). Pick a head or leave blank for an empty row.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Summary row 7', value: effectiveRow7, set: setRow7Val },
-            { label: 'Summary row 8', value: effectiveRow8, set: setRow8Val },
-          ].map(({ label, value, set }) => (
-            <label key={label} className="block">
-              <span className="label">{label}</span>
-              <select value={value ?? ''} onChange={e => set(e.target.value || null)} className="input">
-                <option value="">— None —</option>
-                {visibleHeads.map(v => (
-                  <option key={v.head} value={v.head}>{v.label}</option>
-                ))}
-              </select>
-            </label>
-          ))}
-        </div>
-      </div>
-
       <div className="mt-5 rounded-lg bg-slate-50 px-4 py-3 dark:bg-slate-800/60">
         {subEffective ? (
           <>
@@ -372,6 +347,31 @@ function PdfLayoutSection() {
             )}
           </p>
         )}
+      </div>
+
+      <div className="mt-5 rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Summary rows 7 &amp; 8
+        </div>
+        <p className="mb-3 text-xs text-slate-400 dark:text-slate-500">
+          These two heads print in the fixed 9-row PDF summary (S U M M A R Y → BHETA → B.F. → S.B.F. → S.S + PCS → Langar + FF → rows 7 &amp; 8 → TOTAL Rs.). Pick a head or leave blank for an empty row.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Summary row 7', value: effectiveRow7, set: setRow7Val },
+            { label: 'Summary row 8', value: effectiveRow8, set: setRow8Val },
+          ].map(({ label, value, set }) => (
+            <label key={label} className="block">
+              <span className="label">{label}</span>
+              <select value={value ?? ''} onChange={e => set(e.target.value || null)} className="input">
+                <option value="">— None —</option>
+                {visibleHeads.map(v => (
+                  <option key={v.head} value={v.head}>{v.label}</option>
+                ))}
+              </select>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="mt-5 flex items-center justify-end gap-2">
