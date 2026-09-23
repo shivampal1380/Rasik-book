@@ -71,7 +71,7 @@ export async function listBooks({ query, userId, role }) {
     prisma.book.count({ where }),
     prisma.book.findMany({
       where,
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ createdAt: 'asc' }, { bookNumber: 'asc' }],
       skip,
       take: pageSize,
       select: {
